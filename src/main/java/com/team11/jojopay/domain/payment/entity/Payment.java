@@ -1,5 +1,6 @@
 package com.team11.jojopay.domain.payment.entity;
 
+import com.team11.jojopay.common.entity.BaseTimeEntity;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
