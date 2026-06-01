@@ -1,6 +1,7 @@
 package com.team11.jojopay.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.team11.jojopay.common.exception.ErrorCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -61,6 +62,6 @@ public class CommonApiResponse<T> {
      * @return 에러 세부 정보 데이터가 포함된 실패 응답 객체
      */
     public static <T> CommonApiResponse<T> error(ErrorCode errorCode, T data) {
-        return new CommonApiResponse<>(errorCode.getHttpStatus().value(), errorCode.getCode(), errorCode.getMessage(), data);
+        return new CommonApiResponse<>(errorCode.getStatus(), errorCode.getCode(), errorCode.getMessage(), data);
     }
 }
