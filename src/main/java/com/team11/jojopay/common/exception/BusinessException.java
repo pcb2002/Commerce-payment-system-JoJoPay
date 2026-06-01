@@ -1,7 +1,7 @@
 package com.team11.jojopay.common.exception;
 
 import lombok.Getter;
-import org.h2.api.ErrorCode;
+import com.team11.jojopay.common.exception.ErrorCode;
 
 @Getter
 public class BusinessException extends RuntimeException {

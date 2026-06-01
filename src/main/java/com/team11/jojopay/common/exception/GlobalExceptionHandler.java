@@ -1,5 +1,6 @@
 package com.team11.jojopay.common.exception;
 
+import com.team11.jojopay.common.response.CommonApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,16 +15,40 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     /**
-     * 잘못된 인자나 인수가 메서드에 전달되었을 때 발생하는 IllegalArgumentException을 전역적으로 처리합니다.
-     * 주로 비즈니스 로직 검증 실패, 필수 값 누락 등의 상황에서 발생하며,
-     * 클라이언트에게는 HTTP 400 Bad Request 상태 코드와 함께 해당 예외의 메시지를 본문(Body)으로 반환합니다.
+     * 서비스 레이어에서 비즈니스 로직 위반으로 던진 커스텀 예외(ServiceException)를 처리합니다.
+     * ErrorCode가 401이든, 404든, 409든 상관없이 동적으로 판단하여 클라이언트에게 내려줍니다.
      *
-     * @param e 발생한 IllegalArgumentException 객체
-     * @return 에러 메시지와 HttpStatus#BAD_REQUEST 상태 코드를 포함한 ResponseEntity
+     * @param e 발생한 ServiceException 객체
+     * @return  ResponseEn
+     */
+    @ExceptionHandler(ServiceException.class)
+    public ResponseEntity<CommonApiResponse<Object>> handleServiceException(ServiceException e) {
+
+        // 1. 서비스가 던진 폭탄(예외) 속에 들어있는 '진짜 에러코드'를 쏙 빼옵니다.
+        // 예: ErrorCode.CUSTOMER_NOT_FOUND (404) 또는 EMAIL_DUPLICATE (409) 등
+        ErrorCode errorCode = e.getErrorCode();
+
+        // 2. 공통 응답 상자에 에러 코드를 넣어서 포장합니다. (data는 null)
+        CommonApiResponse<Object> response = CommonApiResponse.error(errorCode, e.getErrorData());
+
+        // 3. 고정된 HttpStatus가 아니라, 에러코드가 품고 있는 진짜 HTTP 상태값을 동적으로 꺼내서 매핑합니다!
+        return ResponseEntity
+                .status(errorCode.getHttpStatus()) // ➔ 여기서 401, 404, 409 등이 알아서 결정됩니다!
+                .body(response);
+    }
+
+    /**
+     * 자바/스프링 표준 예외인 IllegalArgumentException은 에러코드가 내장되어 있지 않으므로,
+     * 개발자가 지정한 표준 에러코드(VALIDATION_FAILED - 400)로 묶어서 처리합니다.
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    public ResponseEntity<CommonApiResponse<String>> handleIllegalArgument(IllegalArgumentException e) {
+        ErrorCode errorCode = ErrorCode.VALIDATION_FAILED;
+        CommonApiResponse<String> response = CommonApiResponse.error(errorCode, e.getMessage());
+
+        return ResponseEntity
+                .status(errorCode.getHttpStatus()) // 하드코딩 대신 열거형에서 꺼내 쓰도록 수정!
+                .body(response);
     }
 
 }

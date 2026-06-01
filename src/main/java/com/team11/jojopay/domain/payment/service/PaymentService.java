@@ -1,13 +1,13 @@
 package com.team11.jojopay.domain.payment.service;
 
 import com.team11.jojopay.common.exception.BusinessException;
+import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
-import org.h2.api.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
