@@ -16,39 +16,37 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Payment {
+public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Long id; // PK
 
-  @Column(nullable = false)
-  private Long orderId;
-
-  @Column(nullable = false)
-  private Integer amount;
+  @Column(nullable = false, unique = true)
+  private String portonePaymentId; // 포트원 고유 식별자
+  private Long amount;
+  private Long usedPoint;
 
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
-
-  private LocalDateTime createdAt;
   private LocalDateTime approvedAt;
 
   // 팩토리 메서드
-  public static Payment create(Long orderId, Integer amount) {
+  public static Payment createPayment(String portonePaymentId, Long amount, Long usedPoint) {
     Payment payment = new Payment();
-    payment.orderId = orderId;
+    payment.portonePaymentId = portonePaymentId;
     payment.amount = amount;
+    payment.usedPoint = usedPoint;
     payment.status = PaymentStatus.READY;
-    payment.createdAt = LocalDateTime.now();
     return payment;
   }
 
-  // 비즈니스 로직
+  // 비즈니스 로직: 결제 완료 처리
   public void complete() {
     this.status = PaymentStatus.COMPLETED;
     this.approvedAt = LocalDateTime.now();
   }
 
+  // 비즈니스 로직: 결제 실패 처리
   public void fail() {
     this.status = PaymentStatus.FAILED;
   }
