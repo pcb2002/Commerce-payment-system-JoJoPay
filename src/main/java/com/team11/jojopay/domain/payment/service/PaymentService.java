@@ -1,7 +1,7 @@
 package com.team11.jojopay.domain.payment.service;
 
-import com.team11.jojopay.common.exception.BusinessException;
 import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.entity.Payment;
@@ -20,11 +20,11 @@ public class PaymentService {
   public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
     // 기존 결제 정보 조회
     Payment payment = paymentRepository.findByPortonePaymentId(request.getPortonePaymentId())
-        .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        .orElseThrow(() -> new ServiceException(ErrorCode.ORDER_NOT_FOUND));
 
     // 이미 완료된 결제인지 체크
     if (payment.getStatus() == PaymentStatus.COMPLETED) {
-      throw new BusinessException(ErrorCode.INVALID_ORDER_STATUS);
+      throw new ServiceException(ErrorCode.INVALID_ORDER_STATUS);
     }
 
     // 외부 API 교차 검증
@@ -33,7 +33,7 @@ public class PaymentService {
     // 금액 위변조 확인
     if (!payment.getAmount().equals(realPaidAmount)) {
       payment.fail(); // 상태를 실패로 변경
-      throw new BusinessException(ErrorCode.VALIDATION_FAILED);
+      throw new ServiceException(ErrorCode.VALIDATION_FAILED);
     }
 
     // 모든 검증 통과 시 결제 완료 처리
