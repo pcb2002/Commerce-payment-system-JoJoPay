@@ -32,6 +32,7 @@ spring:
         format_sql: true
 jwt:
   secret-key: localEnvDummySecretKeyForJojoPayProjectTest12345!
+  access-token-valid-time: 36000000
 
 ---
 
