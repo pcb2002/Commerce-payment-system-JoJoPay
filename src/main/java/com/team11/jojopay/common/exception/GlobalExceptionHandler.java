@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CommonApiResponse<Object>> handleServiceException(ServiceException e) {
 
         // 1. 서비스가 던진 폭탄(예외) 속에 들어있는 '진짜 에러코드'를 쏙 빼옵니다.
-        // 예: ErrorCode.CUSTOMER_NOT_FOUND (404) 또는 EMAIL_DUPLICATE (409) 등
+        // 예: ErrorCode.Member_NOT_FOUND (404) 또는 EMAIL_DUPLICATE (409) 등
         ErrorCode errorCode = e.getErrorCode();
 
         // 2. 공통 응답 상자에 에러 코드를 넣어서 포장합니다. (data는 null)
