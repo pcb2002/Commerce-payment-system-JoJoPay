@@ -3,8 +3,12 @@ package com.team11.jojopay.domain.member.entity;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.enums.MembershipGrade;
+import com.team11.jojopay.domain.point.entity.PointHistory;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,6 +44,9 @@ public class Member {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private MembershipGrade membershipGrade;
+
+  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<PointHistory> pointHistories = new ArrayList<>();
 
   private LocalDateTime createdAt;
 

@@ -2,14 +2,13 @@ package com.team11.jojopay.domain.payment.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.team11.jojopay.domain.point.entity.PointHistory;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +28,10 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
+
+  @OneToMany(mappedBy = "payment")
+  private List<PointHistory> pointHistories = new ArrayList<>();
+
   private LocalDateTime approvedAt;
 
   // 팩토리 메서드
