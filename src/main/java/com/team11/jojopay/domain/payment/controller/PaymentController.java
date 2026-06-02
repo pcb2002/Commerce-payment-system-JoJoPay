@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.springframework.http.HttpStatus.OK;
+
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
@@ -27,6 +29,6 @@ public class PaymentController {
     PaymentResponse response = paymentService.confirmPayment(request);
 
     // 서비스가 준 결과를 공통 응답 포맷에 담아서 반환한다.
-    return CommonApiResponse.success(HttpStatus.OK, "결제 승인 완료", response);
+    return CommonApiResponse.success(OK, "결제 승인 완료", response);
   }
 }
