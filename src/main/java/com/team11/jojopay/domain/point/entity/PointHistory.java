@@ -37,7 +37,7 @@ public class PointHistory {
     private PointTransactionType transactionType;
 
     @Column(nullable = false)
-    private Long amount; // 변동 금액 (절대값으로 저장하고 타입으로 구분하는 것이 관리상 편리합니다)
+    private Long amount;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -48,6 +48,26 @@ public class PointHistory {
         this.member = member;
         this.payment = payment;
         this.transactionType = transactionType;
-        this.amount = amount;
+        this.amount = determineAmountByTransactionType(transactionType, amount);
+    }
+
+    /**
+     * 트랜잭션 타입에 따라 변동 금액의 부호를 결정합니다.
+     * USE(사용)이거나 CANCEL(취소/회수) 등 차감 성격의 타입일 때 마이너스 처리합니다.
+     */
+    private Long determineAmountByTransactionType(PointTransactionType type, Long amount) {
+        // 음수 입력을 방지하기 위해 먼저 절대값 처리 후 분기
+        Long absoluteAmount = Math.abs(amount);
+
+        // 💡 팀에서 정의한 Enum 구조에 맞게 차감 유형들을 케이스로 묶어줍니다.
+        if (type == PointTransactionType.EARN || type == PointTransactionType.USE_RECOVERY) {
+            return absoluteAmount;
+        }
+
+        if (type == PointTransactionType.USE || type == PointTransactionType.EARN_FORFEIT) {
+            return -absoluteAmount;
+        }
+
+        return absoluteAmount;
     }
 }
