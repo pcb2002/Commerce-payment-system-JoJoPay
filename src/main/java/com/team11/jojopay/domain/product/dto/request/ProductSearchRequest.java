@@ -1,7 +1,7 @@
 package com.team11.jojopay.domain.product.dto.request;
 
 
-import aQute.bnd.annotation.headers.Category;
+import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ public class ProductService {
     private final ProductRepository productRepository;
 
     // 상품 단건 조회
+    @Transactional(readOnly = true)
     public ProductDetailResponse getDetailProduct(Long productId) {
 
         // 1. DB에서 상품 조회하기
@@ -31,37 +33,13 @@ public class ProductService {
                         new IllegalArgumentException("상품을 찾을 수 없습니다.")
                 );
 
-        // 2. 데이터 준비하기
-        Long responseProductId = findProduct.getId();
-
-        String responseProductName = findProduct.getName();
-
-        Integer responsePrice = findProduct.getPrice();
-
-        Integer responseStockQuantity = findProduct.getStockQuantity();
-
-        String responseDescription = findProduct.getDescription();
-
-        // 3. 응답 DTO 만들기
-        ProductDetailResponse detailResponse =
-                ProductDetailResponse.builder()
-                        .productId(responseProductId)
-                        .productName(responseProductName)
-                        .price(responsePrice)
-                        .stockQuantity(responseStockQuantity)
-                        .description(responseDescription)
-                        .category(findProduct.getCategory())
-                        .status(findProduct.getStatus())
-                        .createdAt(findProduct.getCreatedAt())
-                        .updatedAt(findProduct.getUpdatedAt())
-                        .build();
-
-        // 4. 반환하기
-        return detailResponse;
+        // 2. dto 변환 후 반환
+        return ProductDetailResponse.from(findProduct);
     }
 
 
     // 상품 목록 조회
+    @Transactional(readOnly = true)
     public Page<ProductListResponse> getProductList(
             ProductSearchRequest request
     ) {
@@ -106,16 +84,7 @@ public class ProductService {
         // 5. DTO 만들기 - stream
         List<ProductListResponse> productResponseList =
                 findProductPage.getContent().stream()
-                        .map(product ->
-                                ProductListResponse.builder()
-                                        .productId(product.getId())
-                                        .productName(product.getName())
-                                        .price(product.getPrice())
-                                        .stockQuantity(product.getStockQuantity())
-                                        .category(product.getCategory())
-                                        .status(product.getStatus())
-                                        .build()
-                        )
+                        .map(ProductListResponse::from)
                         .collect(Collectors.toList());
 
         // 6. Page 객체로 반환하기

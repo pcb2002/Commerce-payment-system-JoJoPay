@@ -1,6 +1,6 @@
 package com.team11.jojopay.domain.product.entity;
 
-import aQute.bnd.annotation.headers.Category;
+import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
