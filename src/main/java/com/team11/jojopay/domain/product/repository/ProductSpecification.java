@@ -24,7 +24,7 @@ public class ProductSpecification {
                         : cb.equal(root.get("category"), category);
     }
 
-    // 판매상태 조건 → WHERE status = ?
+    //  판매상태 조건 → WHERE status = ?
 
     public static Specification<Product> hasStatus(ProductStatus status) {
 
@@ -35,7 +35,7 @@ public class ProductSpecification {
     }
 
 
-    // 최소가격 조건  → WHERE price >= ?
+    //  최소가격 조건  → WHERE price >= ?
 
     public static Specification<Product> minPrice(Integer minPrice) {
 
@@ -49,7 +49,7 @@ public class ProductSpecification {
 
     }
 
-    // 최대가격 조건 → WHERE price <= ?
+    //  최대가격 조건 → WHERE price <= ?
 
     public static Specification<Product> maxPrice(Integer maxPrice) {
 
