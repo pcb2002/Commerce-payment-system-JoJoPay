@@ -1,5 +1,7 @@
 package com.team11.jojopay.domain.member.service;
 
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.dto.response.MemberResponse;
 import com.team11.jojopay.domain.member.dto.response.MembershipResponse;
 import com.team11.jojopay.domain.member.entity.Member;
@@ -17,7 +19,7 @@ public class MemberService {
   @Transactional(readOnly = true)
   public MemberResponse getMyInfo(Long memberId) {
     Member member = memberRepository.findById(memberId).orElseThrow(
-        () -> new IllegalArgumentException("존재하지 않는 회원입니다.")
+        () -> new ServiceException(ErrorCode.CUSTOMER_NOT_FOUND)
     );
 
     return MemberResponse.from(member);
@@ -26,7 +28,7 @@ public class MemberService {
   @Transactional(readOnly = true)
   public MembershipResponse getMyMembership(Long memberId) {
     Member member = memberRepository.findById(memberId).orElseThrow(
-        () -> new IllegalArgumentException("존재하지 않는 회원입니다.")
+        () -> new ServiceException(ErrorCode.CUSTOMER_NOT_FOUND)
     );
 
     return MembershipResponse.from(member);

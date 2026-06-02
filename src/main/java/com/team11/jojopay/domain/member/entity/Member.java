@@ -1,5 +1,7 @@
 package com.team11.jojopay.domain.member.entity;
 
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.enums.MembershipGrade;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -60,5 +62,45 @@ public class Member {
         passwordHash,
         phoneNumber
     );
+  }
+
+  // 결제 완료 시 누적 결제 금액을 증가시키고 등급을 재계산
+  public void increaseTotalPaymentAmount(Long amount) {
+    this.totalPaymentAmount += amount;
+    updateMembershipGrade();
+  }
+
+  // 환불 완료 시 누적 결제 금액을 감소시키고 등급을 재계산
+  public void decreaseTotalPaymentAmount(Long amount) {
+    this.totalPaymentAmount = Math.max(0L, totalPaymentAmount - amount);
+    updateMembershipGrade();
+  }
+
+  // 포인트 적립 또는 사용 포인트 복구 시 포인트 잔액을 증가
+  public void addPoint(Long point) {
+    this.pointBalance += point;
+  }
+
+  // 포인트 사용 또는 적립 포인트 회수 시 포인트 잔액을 차감
+  public void usePoint(Long point) {
+    if (this.pointBalance < point) {
+      throw new ServiceException(ErrorCode.INSUFFICIENT_BALANCE);
+    }
+    this.pointBalance -= point;
+  }
+
+  // 누적 결제 금액 기준으로 멤버십 등급을 갱신
+  private void updateMembershipGrade() {
+    if (this.totalPaymentAmount >= MembershipGrade.VVIP.getMinimumAmount()) {
+      this.membershipGrade = MembershipGrade.VVIP;
+      return;
+    }
+
+    if (this.totalPaymentAmount >= MembershipGrade.VIP.getMinimumAmount()) {
+      this.membershipGrade = MembershipGrade.VIP;
+      return;
+    }
+
+    this.membershipGrade = MembershipGrade.NORMAL;
   }
 }
