@@ -7,6 +7,7 @@ import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
+import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
+
   private final PaymentRepository paymentRepository;
+  private final PortOneClient portOneClient;
 
   @Transactional
   public PaymentResponse confirmPayment(PaymentConfirmRequest request) {

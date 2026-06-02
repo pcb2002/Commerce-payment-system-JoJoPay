@@ -52,4 +52,5 @@ jwt:
   access-token-valid-time: 3600000
 
 portone:
-  secret-key: ${portone.secret-key}
+  secret-key: "MP42bGdUPcTmnU98YXpWCEtLBP26DUqU1WATn20ipyW2HcL3BBwrx7V7nTFQJRPa3V3bbTVKFZjpWxLT" # 포트원 V2 API 시크릿 키
+    api-url: "https://api.portone.io"     # V2 API 기본 주소
