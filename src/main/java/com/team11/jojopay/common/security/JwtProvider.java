@@ -23,7 +23,7 @@ public class JwtProvider {
 
     // 💡 생성자 시점에 application.properties 설정을 직접 주입받아 합칩니다.
     public JwtProvider(
-            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.secret-key}") String secret,
             @Value("${jwt.access-token-valid-time}") long accessTokenValidTime
     ) {
         this.accessTokenValidTime = accessTokenValidTime;

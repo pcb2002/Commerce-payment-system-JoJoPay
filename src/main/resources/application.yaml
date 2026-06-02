@@ -49,7 +49,7 @@ spring:
 
 jwt:
   secret-key: ${jwt.secret-key}
-  access-expiration: 3600000
+  access-token-valid-time: 3600000
 
 portone:
   secret-key: ${portone.secret-key}
