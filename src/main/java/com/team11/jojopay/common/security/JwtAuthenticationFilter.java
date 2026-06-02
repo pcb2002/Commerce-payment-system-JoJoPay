@@ -50,10 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
-                Long customerId = jwtProvider.getCustomerIdFromToken(token);
+                Long MemberId = jwtProvider.getMemberIdFromToken(token);
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(customerId, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(MemberId, null, Collections.emptyList());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

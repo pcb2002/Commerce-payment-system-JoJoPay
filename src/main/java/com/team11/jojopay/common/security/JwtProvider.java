@@ -48,9 +48,9 @@ public class JwtProvider {
     }
 
     /**
-     * 토큰의 subject에 저장된 고유 Customer ID를 꺼냅니다.
+     * 토큰의 subject에 저장된 고유 Member ID를 꺼냅니다.
      */
-    public Long getCustomerIdFromToken(String token) {
+    public Long getMemberIdFromToken(String token) {
         return Long.valueOf(getClaims(token).getSubject());
     }
 
