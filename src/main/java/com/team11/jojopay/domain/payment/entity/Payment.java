@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "payment", uniqueConstraints = {
+@Table(name = "payments", uniqueConstraints = {
         @UniqueConstraint(name = "uk_payment_order_id", columnNames = {"order_id"}),
         @UniqueConstraint(name = "uk_payment_portone_id", columnNames = {"portone_payment_id"})
     })
