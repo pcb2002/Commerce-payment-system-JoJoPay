@@ -4,6 +4,9 @@ import com.team11.jojopay.domain.payment.entity.Payment;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
+/**
+ * 결제 응답 DTO입니다.
+ */
 @Getter
 public class PaymentResponse {
 

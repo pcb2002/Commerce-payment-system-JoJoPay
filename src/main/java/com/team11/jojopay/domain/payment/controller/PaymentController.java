@@ -6,6 +6,7 @@ import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

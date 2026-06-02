@@ -1,14 +1,17 @@
 package com.team11.jojopay.domain.member.entity;
 
+import com.team11.jojopay.common.entity.BaseTimeEntity;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.enums.MembershipGrade;
-import com.team11.jojopay.domain.point.entity.PointHistory;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "members")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseTimeEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
