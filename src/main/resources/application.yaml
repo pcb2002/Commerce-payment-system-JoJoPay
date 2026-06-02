@@ -8,6 +8,10 @@ spring:
   profiles:
     active: local
 
+portone:
+  secret-key: "MP42bGdUPcTmnU98YXpWCEtLBP26DUqU1WATn20ipyW2HcL3BBwrx7V7nTFQJRPa3V3bbTVKFZjpWxLT"
+  api-url: "https://api.portone.io"
+
 ---
 
 spring:
@@ -40,7 +44,7 @@ spring:
   config:
     activate:
       on-profile: prod
-    import: aws-parameterstore:/config/jojopay/ # AWS에서 파라미터들을 싹 긁어옵니다.
+    import: aws-parameterstore:/config/jojopay/
   jpa:
     hibernate:
       ddl-auto: update
@@ -50,7 +54,3 @@ spring:
 jwt:
   secret-key: ${jwt.secret-key}
   access-token-valid-time: 3600000
-
-portone:
-  secret-key: "MP42bGdUPcTmnU98YXpWCEtLBP26DUqU1WATn20ipyW2HcL3BBwrx7V7nTFQJRPa3V3bbTVKFZjpWxLT" # 포트원 V2 API 시크릿 키
-  api-url: "https://api.portone.io"     # V2 API 기본 주소
