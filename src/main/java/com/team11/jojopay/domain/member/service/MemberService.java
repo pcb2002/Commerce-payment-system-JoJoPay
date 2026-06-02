@@ -19,7 +19,7 @@ public class MemberService {
   @Transactional(readOnly = true)
   public MemberResponse getMyInfo(Long memberId) {
     Member member = memberRepository.findById(memberId).orElseThrow(
-        () -> new ServiceException(ErrorCode.CUSTOMER_NOT_FOUND)
+        () -> new ServiceException(ErrorCode.Member_NOT_FOUND)
     );
 
     return MemberResponse.from(member);
@@ -28,7 +28,7 @@ public class MemberService {
   @Transactional(readOnly = true)
   public MembershipResponse getMyMembership(Long memberId) {
     Member member = memberRepository.findById(memberId).orElseThrow(
-        () -> new ServiceException(ErrorCode.CUSTOMER_NOT_FOUND)
+        () -> new ServiceException(ErrorCode.Member_NOT_FOUND)
     );
 
     return MembershipResponse.from(member);
