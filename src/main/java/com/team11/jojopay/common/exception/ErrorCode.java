@@ -22,7 +22,7 @@ public enum ErrorCode {
     INVALID_AMOUNT_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_AMOUNT_FORMAT", "충전 또는 결제 금액 단위를 다시 확인해주세요."),
 
     // 상태값(Status) 도메인 검증
-    INVALID_Member_STATUS(HttpStatus.BAD_REQUEST, "INVALID_Member_STATUS", "유효하지 않은 회원 상태입니다."),
+    INVALID_MEMBER_STATUS(HttpStatus.BAD_REQUEST, "INVALID_MEMBER_STATUS", "유효하지 않은 회원 상태입니다."),
     INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "INVALID_PRODUCT_STATUS", "유효하지 않은 상품 상태입니다."),
     INVALID_ORDER_STATUS(HttpStatus.BAD_REQUEST, "INVALID_ORDER_STATUS", "유효하지 않은 주문 상태입니다."),
 
@@ -42,7 +42,7 @@ public enum ErrorCode {
     // 403 FORBIDDEN: 인가 실패 및 계정 정지 권한 제한
     // =========================================================================
     FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다."),
-    Member_SUSPENDED(HttpStatus.FORBIDDEN, "Member_SUSPENDED", "활동이 정지된 회원 계정입니다."),
+    MEMBER_SUSPENDED(HttpStatus.FORBIDDEN, "MEMBER_SUSPENDED", "활동이 정지된 회원 계정입니다."),
     INVALID_PASSWORD(HttpStatus.FORBIDDEN, "INVALID_PASSWORD", "현재 비밀번호가 올바르지 않습니다."),
 
 
@@ -50,7 +50,7 @@ public enum ErrorCode {
     // 404 NOT_FOUND: 리소스 존재하지 않음
     // =========================================================================
     INVALID_CREDENTIALS(HttpStatus.NOT_FOUND, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 올바르지 않습니다."),
-    Member_NOT_FOUND(HttpStatus.NOT_FOUND, "Member_NOT_FOUND", "회원이 존재하지 않습니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원이 존재하지 않습니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품이 존재하지 않습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문 내역이 존재하지 않습니다."),
     WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "WALLET_NOT_FOUND", "회원의 페이머니 지갑을 찾을 수 없습니다."),
@@ -63,7 +63,7 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "INSUFFICIENT_STOCK", "상품 재고가 부족합니다."),
     PRODUCT_DISCONTINUED(HttpStatus.CONFLICT, "PRODUCT_DISCONTINUED", "판매가 중단(단종)된 전자제품은 주문할 수 없습니다."),
     PRODUCT_ALREADY_DELETED(HttpStatus.CONFLICT, "PRODUCT_ALREADY_DELETED", "이미 삭제 처리된 상품입니다."),
-    Member_ALREADY_DELETED(HttpStatus.CONFLICT, "Member_ALREADY_DELETED", "이미 탈퇴 또는 삭제 처리된 회원입니다."),
+    MEMBER_ALREADY_DELETED(HttpStatus.CONFLICT, "MEMBER_ALREADY_DELETED", "이미 탈퇴 또는 삭제 처리된 회원입니다."),
 
     // 조조페이머니 핵심 비즈니스 정합성 정책
     INSUFFICIENT_BALANCE(HttpStatus.CONFLICT, "INSUFFICIENT_BALANCE", "페이머니 잔액이 부족하여 결제할 수 없습니다."),
