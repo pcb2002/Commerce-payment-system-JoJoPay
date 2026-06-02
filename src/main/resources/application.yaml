@@ -32,6 +32,7 @@ spring:
         format_sql: true
 jwt:
   secret-key: localEnvDummySecretKeyForJojoPayProjectTest12345!
+  access-token-valid-time: 36000000
 
 ---
 
@@ -48,7 +49,7 @@ spring:
 
 jwt:
   secret-key: ${jwt.secret-key}
-  access-expiration: 3600000
+  access-token-valid-time: 3600000
 
 portone:
   secret-key: ${portone.secret-key}
