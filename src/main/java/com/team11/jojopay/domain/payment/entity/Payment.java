@@ -9,6 +9,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,6 +19,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "payments", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_payment_order_id", columnNames = {"order_id"}),
+        @UniqueConstraint(name = "uk_payment_portone_id", columnNames = {"portone_payment_id"})
+    })
 public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
