@@ -2,9 +2,15 @@ package com.team11.jojopay.domain.payment.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
-import com.team11.jojopay.domain.point.entity.PointHistory;
-import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +22,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "payments", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_payment_order_id", columnNames = {"order_id"}),
+        @UniqueConstraint(name = "uk_payment_portone_id", columnNames = {"portone_payment_id"})
+    })
 public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
