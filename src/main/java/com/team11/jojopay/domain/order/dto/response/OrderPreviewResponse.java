@@ -22,5 +22,5 @@ public class OrderPreviewResponse {
     /**
      * 모든 상품 가격과 수량을 합산한 총 주문 예상 금액
      */
-    private Integer totalAmount;
+    private Long totalAmount;
 }
