@@ -8,6 +8,7 @@ import com.team11.jojopay.domain.payment.dto.response.PortOnePaymentResponse;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
+import com.team11.jojopay.domain.point.service.PointService;
 import com.team11.jojopay.domain.product.service.ProductService;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import lombok.RequiredArgsConstructor;
