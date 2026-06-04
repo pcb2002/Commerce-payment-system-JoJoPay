@@ -28,7 +28,7 @@ public class OrderItem extends BaseTimeEntity {
     private String productName; // 상품명 스냅샷
 
     @Column(nullable = false)
-    private Integer priceAtOrder; // 주문 생성 시점 가격 스냅샷
+    private Long priceAtOrder; // 주문 생성 시점 가격 스냅샷
 
     @Column(nullable = false)
     private Integer quantity; // 수량
@@ -39,7 +39,7 @@ public class OrderItem extends BaseTimeEntity {
     }
 
     // 비즈니스 로직 및 생성자
-    public static OrderItem createOrderItem(Long productId, String productName, Integer priceAtOrder, Integer quantity) {
+    public static OrderItem createOrderItem(Long productId, String productName, Long priceAtOrder, Integer quantity) {
         OrderItem orderItem = new OrderItem();
         orderItem.productId = productId;
         orderItem.productName = productName;

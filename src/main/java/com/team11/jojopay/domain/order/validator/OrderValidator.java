@@ -2,6 +2,8 @@ package com.team11.jojopay.domain.order.validator;
 
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
+import com.team11.jojopay.domain.cartitem.entity.CartItem;
+import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
 import com.team11.jojopay.domain.product.entity.Product;
 import com.team11.jojopay.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
