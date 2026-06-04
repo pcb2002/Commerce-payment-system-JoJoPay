@@ -19,7 +19,7 @@ public class MemberService {
   @Transactional(readOnly = true)
   public MemberResponse getMyInfo(Long memberId) {
     Member member = memberRepository.findById(memberId).orElseThrow(
-        () -> new ServiceException(ErrorCode.CUSTOMER_NOT_FOUND)
+        () -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND)
     );
 
     return MemberResponse.from(member);
@@ -28,9 +28,13 @@ public class MemberService {
   @Transactional(readOnly = true)
   public MembershipResponse getMyMembership(Long memberId) {
     Member member = memberRepository.findById(memberId).orElseThrow(
-        () -> new ServiceException(ErrorCode.CUSTOMER_NOT_FOUND)
+        () -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND)
     );
 
     return MembershipResponse.from(member);
+  }
+
+  public Member findMemberById(Long memberId) {
+    return memberRepository.findById(memberId).orElseThrow(() -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND)); // 팀 내 에러코드 규격에 맞게 조정
   }
 }
