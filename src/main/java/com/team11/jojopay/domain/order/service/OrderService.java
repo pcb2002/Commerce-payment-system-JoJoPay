@@ -2,6 +2,8 @@ package com.team11.jojopay.domain.order.service;
 
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
+import com.team11.jojopay.domain.cartitem.entity.CartItem;
+import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
 import com.team11.jojopay.domain.order.dto.request.OrderCreateRequest;
 import com.team11.jojopay.domain.order.dto.request.OrderPreviewRequest;
 import com.team11.jojopay.domain.order.dto.response.*;
@@ -108,8 +110,8 @@ public class OrderService {
         List<CartItem> cartItems = orderValidator.validateAndGetCartItems(request.getCartItemIds(), memberId);
 
         // 2. 주문 엔티티 생성 (초기화)
-        Order order = Order.createOrder(memberId, generateOrderNumber(), totalAmount, request.getUsedPoint());
         long totalAmount = 0;
+        Order order = Order.createOrder(memberId, generateOrderNumber(), totalAmount, request.getUsedPoint());
 
         // 3. 비즈니스 로직 수행
         for (CartItem cartItem : cartItems) {
