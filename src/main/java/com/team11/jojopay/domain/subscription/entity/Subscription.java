@@ -36,7 +36,7 @@ public class Subscription extends BaseTimeEntity {
 
   // BillingKey 엔티티 구현 전까지 임시로 ID 값만 저장
   @Column(name = "billing_key_id", nullable = false)
-  private Long billingKeyId;
+  private String billingKeyId;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "plan_name", nullable = false, length = 50)
@@ -54,7 +54,7 @@ public class Subscription extends BaseTimeEntity {
 
   private Subscription(
       Member member,
-      Long billingKeyId,
+      String billingKeyId,
       SubscriptionPlan plan,
       LocalDateTime nextBillingDate) {
     this.member = member;
@@ -70,7 +70,7 @@ public class Subscription extends BaseTimeEntity {
    */
   public static Subscription start(
       Member member,
-      Long billingKeyId,
+      String billingKeyId,
       SubscriptionPlan plan,
       LocalDateTime nextBillingDate
   ) {

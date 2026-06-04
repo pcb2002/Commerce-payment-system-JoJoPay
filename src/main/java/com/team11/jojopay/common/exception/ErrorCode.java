@@ -78,7 +78,7 @@ public enum ErrorCode {
     INSUFFICIENT_BALANCE(HttpStatus.CONFLICT, "INSUFFICIENT_BALANCE", "페이머니 잔액이 부족하여 결제할 수 없습니다."),
     PAYMENT_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "PAYMENT_LIMIT_EXCEEDED", "1회 혹은 1일 충전 한도를 초과했습니다."),
     ORDER_CANCEL_NOT_ALLOWED(HttpStatus.CONFLICT, "ORDER_CANCEL_NOT_ALLOWED", "이미 배송이 시작되었거나 취소할 수 없는 상태의 주문입니다."),
-
+    PERIODIC_PAYMENT_FAILED(HttpStatus.CONFLICT, "PERIODIC_PAYMENT_FAILED", "정기 구독 결제 승인 요청에 실패했습니다."),
 
     // =========================================================================
     // 500 INTERNAL_SERVER_ERROR: 서버 치명적 오류

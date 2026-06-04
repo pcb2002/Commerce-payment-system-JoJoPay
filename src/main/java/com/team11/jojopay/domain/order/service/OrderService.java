@@ -2,6 +2,8 @@ package com.team11.jojopay.domain.order.service;
 
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
+import com.team11.jojopay.domain.cartitem.entity.CartItem;
+import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
 import com.team11.jojopay.domain.order.dto.request.OrderCreateRequest;
 import com.team11.jojopay.domain.order.dto.request.OrderPreviewRequest;
 import com.team11.jojopay.domain.order.dto.response.*;
@@ -108,8 +110,8 @@ public class OrderService {
         List<CartItem> cartItems = orderValidator.validateAndGetCartItems(request.getCartItemIds(), memberId);
 
         // 2. 주문 엔티티 생성 (초기화)
-        Order order = Order.createOrder(memberId, generateOrderNumber(), totalAmount, request.getUsedPoint());
         long totalAmount = 0;
+        Order order = Order.createOrder(memberId, generateOrderNumber(), totalAmount, request.getUsedPoint());
 
         // 3. 비즈니스 로직 수행
         for (CartItem cartItem : cartItems) {
@@ -168,7 +170,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderListItemResponse> getMyOrders(Long memberId, Pageable pageable) {
         // Repository에서 Pageable을 통해 최신순 정렬 및 페이징된 데이터를 가져옵니다.
-        Page<Order> orders = orderRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId, pageable);
+        Page<Order> orders = orderValidator.getOrdersByMemberId(memberId, pageable);
 
         return orders.map(OrderListItemResponse::from);
     }
@@ -184,13 +186,37 @@ public class OrderService {
 
         // 1. 주문 및 주문 상품(스냅샷) 조회
         // @EntityGraph가 적용된 쿼리를 사용하여 N+1 문제 없이 한 번의 조인(Fetch Join)으로 가져옵니다.
-        Order order = orderRepository.findWithOrderItemsByOrderNumberAndMemberId(orderNumber, memberId)
-                .orElseThrow(() -> new ServiceException(ErrorCode.ORDER_NOT_FOUND));
+        Order order = orderValidator.validateAndGetOrder(orderNumber, memberId);
 
         // 2. 결제 내역 조회 (결제 담당자가 만든 Payment 엔티티 활용)
-        Payment payment = paymentRepository.findByOrder(order)
-                .orElseThrow(() -> new ServiceException(ErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = orderValidator.validateAndGetPayment(order);
 
         return OrderDetailResponse.of(order, payment);
+    }
+
+    /**
+     * 결제 대기 중인 주문을 취소하고 차감된 재고를 원상 복구합니다.
+     */
+    @Transactional
+    public OrderCancelResponse cancelOrder(Long memberId, String orderNumber) {
+
+        // 1. Validator에게 위임: 주문 조회 및 소유권 검증
+        Order order = orderValidator.validateAndGetOrder(orderNumber, memberId);
+
+        // 2. 도메인 로직: 주문 상태 취소 처리 (엔티티 스스로 상태 검증)
+        order.cancelOrder();
+
+        // 3. 재고 원상 복구 (Validator를 통해 락이 걸린 상품을 가져옴)
+        for (OrderItem orderItem : order.getOrderItems()) {
+            Product product = orderValidator.validateAndGetProductWithLock(orderItem.getProductId());
+            product.increaseStock(orderItem.getQuantity()); // 엔티티 스스로 재고 복구
+        }
+
+        // 4. Validator에게 위임: 결제 내역 조회 후 취소 처리
+        Payment payment = orderValidator.validateAndGetPayment(order);
+        payment.cancel();
+
+        // 5. 응답 DTO 조립 반환
+        return OrderCancelResponse.from(order);
     }
 }
