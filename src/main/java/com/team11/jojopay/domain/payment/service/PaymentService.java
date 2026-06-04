@@ -67,7 +67,7 @@ public class PaymentService {
 
     // 최종 결제 상태 완료 처리 및 승인 시간 기록
     payment.complete();
-    payment.getOrder().complete(); // 주문 엔티티의 상태도 완료로 변경
+    payment.getOrder().completeOrder(); // 주문 엔티티의 상태도 완료로 변경
 
     return PaymentResponse.from(payment);
   }
