@@ -3,10 +3,7 @@ package com.team11.jojopay.domain.order.controller;
 import com.team11.jojopay.common.response.CommonApiResponse;
 import com.team11.jojopay.domain.order.dto.request.OrderCreateRequest;
 import com.team11.jojopay.domain.order.dto.request.OrderPreviewRequest;
-import com.team11.jojopay.domain.order.dto.response.OrderDetailResponse;
-import com.team11.jojopay.domain.order.dto.response.OrderListItemResponse;
-import com.team11.jojopay.domain.order.dto.response.OrderPreviewResponse;
-import com.team11.jojopay.domain.order.dto.response.OrderResponse;
+import com.team11.jojopay.domain.order.dto.response.*;
 import com.team11.jojopay.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +65,7 @@ public class OrderController {
             Pageable pageable) { // ?page=0&size=10 형식의 쿼리 파라미터를 자동 바인딩합니다.
 
         Page<OrderListItemResponse> response = orderService.getMyOrders(memberId, pageable);
-        return CommonApiResponse.success(OK, "주문 내역 목록 조회 성공",response);
+        return CommonApiResponse.success(OK, "주문 내역 목록 조회 성공", response);
     }
 
     /**
@@ -81,6 +78,20 @@ public class OrderController {
             @PathVariable String orderNumber) {
 
         OrderDetailResponse response = orderService.getOrderDetail(memberId, orderNumber);
-        return CommonApiResponse.success(OK, "단건 주문 상세 조회 성공",response);
+        return CommonApiResponse.success(OK, "단건 주문 상세 조회 성공", response);
+    }
+
+    /**
+     * [주문 취소]
+     * 결제 대기 상태인 주문을 취소하고 선차감된 재고를 즉시 복구합니다.
+     */
+    @PostMapping("/{orderNumber}/cancel")
+    public CommonApiResponse<OrderCancelResponse> cancelOrder(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable String orderNumber) {
+
+        OrderCancelResponse response = orderService.cancelOrder(memberId, orderNumber);
+
+        return CommonApiResponse.success(OK, "주문 취소 성공", response);
     }
 }
