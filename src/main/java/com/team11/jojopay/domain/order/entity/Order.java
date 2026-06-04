@@ -83,6 +83,15 @@ public class Order extends BaseTimeEntity {
     }
 
     public void cancelOrder() {
+        // 이미 결제가 완료되었거나, 이미 취소된 상태라면 예외 발생
+        if (this.status == OrderStatus.COMPLETED) {
+            throw new ServiceException(ErrorCode.ORDER_CANNOT_BE_CANCELLED);
+        }
+
+        if (this.status == OrderStatus.CANCELLED) {
+            throw new ServiceException(ErrorCode.ORDER_ALREADY_BE_CANCELLED);
+        }
+
         this.status = OrderStatus.CANCELLED; // 결제 실패/전액 환불 시 호출 [cite: 673, 674]
     }
 }
