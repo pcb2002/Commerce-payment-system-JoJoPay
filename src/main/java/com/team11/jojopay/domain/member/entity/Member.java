@@ -48,13 +48,6 @@ public class Member extends BaseTimeEntity {
   @Column(nullable = false, length = 20)
   private MembershipGrade membershipGrade;
 
-  @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<PointHistory> pointHistories = new ArrayList<>();
-
-  private LocalDateTime createdAt;
-
-  private LocalDateTime updatedAt;
-
   private Member(String name, String email, String passwordHash, String phoneNumber) {
     this.name = name;
     this.email = email;
