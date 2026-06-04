@@ -20,7 +20,7 @@ public class ProductDetailResponse {
 
     private String productName;
 
-    private Integer price;
+    private Long price;
 
     private Integer stockQuantity;
 
