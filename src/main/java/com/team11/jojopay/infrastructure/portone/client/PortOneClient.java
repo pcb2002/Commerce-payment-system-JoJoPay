@@ -18,6 +18,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 외부 결제 대행사(PortOne V2) 서버와 HTTP 통신 및 보안 검증을 수행하는 인프라 클라이언트입니다.
+ * 외부 세계와 우리 스프링 서버를 연결하는 '보안 무전기' 역할을 담당합니다.
+ */
 @Component
 @RequiredArgsConstructor
 public class PortOneClient {
@@ -37,8 +41,7 @@ public class PortOneClient {
     String url = apiUrl + "/payments/" + portonePaymentId;
 
     // 헤더 설정
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", "PortOne " + secretKey);
+    HttpHeaders headers = createHeaders();
     HttpEntity<Void> entity = new HttpEntity<>(headers);
 
     try {
