@@ -25,7 +25,7 @@ public class PaymentService {
   private final ProductService productService; // 상품 정보 조회용 서비스
   private final PointService pointService; // 포인트 적립용 서비스
 
-   /**
+  /**
    * 결제 확정 및 비즈니스 로직(포인트 처리)을 수행합니다.
    */
   @Transactional
