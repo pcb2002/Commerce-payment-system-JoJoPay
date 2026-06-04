@@ -56,9 +56,9 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
   private LocalDateTime approvedAt;
 
   /**
-     * 정적 팩토리 메서드
-     * 생성 시점에 Order 객체를 직접 받습니다.
-     */
+   * 정적 팩토리 메서드
+   * 생성 시점에 Order 객체를 직접 받습니다.
+   */
   public static Payment createPayment(Order order, String portonePaymentId, Long amount, Long usedPoint) {
     Payment payment = new Payment();
     payment.order = order; // 연관관계 매핑
