@@ -12,6 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +38,10 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   @Enumerated(EnumType.STRING)
   private PaymentStatus status;
+
+  @OneToMany(mappedBy = "payment")
+  private List<PointHistory> pointHistories = new ArrayList<>();
+
   private LocalDateTime approvedAt;
 
   // 팩토리 메서드
