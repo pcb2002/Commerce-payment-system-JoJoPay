@@ -3,11 +3,15 @@ package com.team11.jojopay.domain.order.controller;
 import com.team11.jojopay.common.response.CommonApiResponse;
 import com.team11.jojopay.domain.order.dto.request.OrderCreateRequest;
 import com.team11.jojopay.domain.order.dto.request.OrderPreviewRequest;
+import com.team11.jojopay.domain.order.dto.response.OrderDetailResponse;
+import com.team11.jojopay.domain.order.dto.response.OrderListItemResponse;
 import com.team11.jojopay.domain.order.dto.response.OrderPreviewResponse;
 import com.team11.jojopay.domain.order.dto.response.OrderResponse;
 import com.team11.jojopay.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,5 +56,31 @@ public class OrderController {
 
         OrderResponse response = orderService.createOrder(memberId, request);
         return CommonApiResponse.success(OK, "주문 성공", response); // 규약에 맞춘 공통 응답 객체
+    }
+
+    /**
+     * [주문 내역 목록 조회]
+     * 회원의 전체 주문 내역을 페이징하여 최신순으로 제공합니다.
+     */
+    @GetMapping
+    public CommonApiResponse<Page<OrderListItemResponse>> getMyOrders(
+            @AuthenticationPrincipal Long memberId,
+            Pageable pageable) { // ?page=0&size=10 형식의 쿼리 파라미터를 자동 바인딩합니다.
+
+        Page<OrderListItemResponse> response = orderService.getMyOrders(memberId, pageable);
+        return CommonApiResponse.success(OK, "주문 내역 목록 조회 성공",response);
+    }
+
+    /**
+     * [단건 주문 상세 조회]
+     * 특정 주문의 상세 정보, 상품 스냅샷, 결제/포인트 내역을 제공합니다.
+     */
+    @GetMapping("/{orderNumber}")
+    public CommonApiResponse<OrderDetailResponse> getOrderDetail(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable String orderNumber) {
+
+        OrderDetailResponse response = orderService.getOrderDetail(memberId, orderNumber);
+        return CommonApiResponse.success(OK, "단건 주문 상세 조회 성공",response);
     }
 }
