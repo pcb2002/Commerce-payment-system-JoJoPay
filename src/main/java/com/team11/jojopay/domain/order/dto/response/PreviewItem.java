@@ -13,6 +13,6 @@ import lombok.Getter;
 public class PreviewItem {
     private Long productId;
     private String productName;
-    private Integer price; // 실시간 현재 판매가
+    private Long price; // 실시간 현재 판매가
     private Integer quantity; // 선택 수량
 }
