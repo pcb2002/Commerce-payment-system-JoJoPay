@@ -20,7 +20,7 @@ public enum ErrorCode {
     INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "INVALID_QUANTITY", "주문 또는 결제 수량이 올바르지 않습니다."),
     INVALID_STOCK_VALUE(HttpStatus.BAD_REQUEST, "INVALID_STOCK_VALUE", "재고값이 올바르지 않습니다."),
     INVALID_AMOUNT_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_AMOUNT_FORMAT", "충전 또는 결제 금액 단위를 다시 확인해주세요."),
-    INVALID_POINT_AMOUNT( HttpStatus.BAD_REQUEST, "INVALID_POINT_AMOUNT", "사용 포인트가 결제 금액을 초과할 수 없습니다."),
+    INVALID_POINT_AMOUNT(HttpStatus.BAD_REQUEST, "INVALID_POINT_AMOUNT", "사용 포인트가 결제 금액을 초과할 수 없습니다."),
 
     // 상태값(Status) 도메인 검증
     INVALID_MEMBER_STATUS(HttpStatus.BAD_REQUEST, "INVALID_MEMBER_STATUS", "유효하지 않은 회원 상태입니다."),
@@ -67,6 +67,7 @@ public enum ErrorCode {
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "INSUFFICIENT_STOCK", "상품 재고가 부족합니다."),
     ORDER_CANNOT_BE_CANCELLED(HttpStatus.CONFLICT, "ORDER_CANNOT_BE_CANCELLED", "이미 결제가 완료된 주문은 취소할 수 없습니다."),
     ORDER_ALREADY_BE_CANCELLED(HttpStatus.CONFLICT, "ORDER_ALREADY_BE_CANCELLED", "이미 취소 처리된 주문입니다."),
+    PERIODIC_PAYMENT_FAILED(HttpStatus.CONFLICT, "PERIODIC_PAYMENT_FAILED", "정기 구독 결제 승인 요청에 실패했습니다."),
     PRODUCT_DISCONTINUED(HttpStatus.CONFLICT, "PRODUCT_DISCONTINUED", "판매가 중단(단종)된 전자제품은 주문할 수 없습니다."),
     PRODUCT_ALREADY_DELETED(HttpStatus.CONFLICT, "PRODUCT_ALREADY_DELETED", "이미 삭제 처리된 상품입니다."),
     MEMBER_ALREADY_DELETED(HttpStatus.CONFLICT, "MEMBER_ALREADY_DELETED", "이미 탈퇴 또는 삭제 처리된 회원입니다."),
@@ -83,7 +84,8 @@ public enum ErrorCode {
     // 500 INTERNAL_SERVER_ERROR: 서버 치명적 오류
     // =========================================================================
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다."),
-    PAYMENT_GATEWAY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_GATEWAY_ERROR", "결제 대행사(PG) 연동 중 통신 오류가 발생했습니다.");
+    PAYMENT_GATEWAY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_GATEWAY_ERROR", "결제 대행사(PG) 연동 중 통신 오류가 발생했습니다."),
+    PAYMENT_CANCEL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PAYMENT_CANCEL_FAILED", "금액 불일치로 인한 외부 PG 결제 보상 취소 요청이 실패했습니다.");
 
 
     private final HttpStatus httpStatus;
