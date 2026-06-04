@@ -8,7 +8,7 @@ import lombok.Getter;
 public class SubscriptionStartRequest {
 
   @NotNull(message = "결제수단 ID는 필수입니다.")
-  private Long billingKeyId;
+  private String billingKeyId;
 
   @NotNull(message = "구독 플랜은 필수입니다.")
   private SubscriptionPlan plan;
