@@ -83,7 +83,7 @@ public class SubscriptionService {
 
     try {
       // 포트원 빌링키 결제 API 호출
-      portOneClient.scheduleBillingKeyPayment()(subscription.getBillingKey(), subscription.getAmount());
+      portOneClient.scheduleBillingKeyPaymentd()(subscription.getBillingKey(), subscription.getAmount());
 
       // 포인트 적립 (결제 직전 누적 금액 기준 등급 적용)
       // 현재 등급의 적립률을 가져와서 적립
