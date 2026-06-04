@@ -3,7 +3,6 @@ package com.team11.jojopay.domain.payment.service;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
-import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.dto.response.PortOnePaymentResponse;
@@ -26,8 +25,8 @@ public class PaymentService {
   private final ProductService productService; // 상품 정보 조회용 서비스
   private final PointService pointService; // 포인트 적립용 서비스
 
-  /**
-   * 결제 확정 및 비즈니스 로직(재고 차감, 포인트 처리)을 수행합니다.
+   /**
+   * 결제 확정 및 비즈니스 로직(포인트 처리)을 수행합니다.
    */
   @Transactional
   public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
@@ -42,18 +41,17 @@ public class PaymentService {
 
     // 포트원 API 교차 검증
     PortOnePaymentResponse portoneData = portOneClient.getPaymentInfo(request.getPortonePaymentId());
-    validatePortOneStatus(payment, portoneData);
 
-    // 3. 연관된 객체(Order, Member) 정보 가져오기
-    Order order = payment.getOrder();
-    Member member = order.getMember();
+    try {
+      validatePortOneStatus(payment, portoneData);
+    } catch (ServiceException e) {
+      // 결제 검증 실패 시 선 차감된 재고 복구 로직 호출
+      productService.increaseStock(payment.getOrder().getProduct().getId(), payment.getOrder().getQuantity());
+      throw e; // 예외 재발생
+    }
 
-    /**
-     * 재고 차감 로직 실행
-     * 실제 운영 환경에서는 주문 시 선차감 후, 여기서 확정 처리를 하거나 추가 차감을 진행합니다.
-     * Product 엔티티의 비즈니스 로직 호출 (Service를 거쳐 위임)
-     */
-    productService.decreaseStock(order.getProduct.getId(), order.getQuantity());
+    // 연관된 객체(Member) 정보 가져오기
+    Member member = payment.getMember();
 
     // 포인트 복합 결제 처리 (사용한 포인트가 있는 경우)
     if (payment.getUsedPoint() > 0) {
@@ -62,13 +60,14 @@ public class PaymentService {
 
     // 포인트 적립 로직 (실 결제 금액의 1%)
     Long earnPoint = (long) (payment.getAmount() * 0.01);
-    pointService.earnPoint(member.getId(), earnAmount, payment);
+    pointService.earnPoint(member, earnPoint, payment);
 
     // [멤버십]  누적 결제 금액 업데이트 및 등급 자동 갱신
     member.increaseTotalPaymentAmount(payment.getAmount());
 
     // 최종 결제 상태 완료 처리 및 승인 시간 기록
     payment.complete();
+    payment.getOrder().complete(); // 주문 엔티티의 상태도 완료로 변경
 
     return PaymentResponse.from(payment);
   }
