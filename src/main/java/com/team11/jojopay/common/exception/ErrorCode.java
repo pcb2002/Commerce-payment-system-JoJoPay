@@ -20,6 +20,7 @@ public enum ErrorCode {
     INVALID_QUANTITY(HttpStatus.BAD_REQUEST, "INVALID_QUANTITY", "주문 또는 결제 수량이 올바르지 않습니다."),
     INVALID_STOCK_VALUE(HttpStatus.BAD_REQUEST, "INVALID_STOCK_VALUE", "재고값이 올바르지 않습니다."),
     INVALID_AMOUNT_FORMAT(HttpStatus.BAD_REQUEST, "INVALID_AMOUNT_FORMAT", "충전 또는 결제 금액 단위를 다시 확인해주세요."),
+    INVALID_POINT_AMOUNT( HttpStatus.BAD_REQUEST, "INVALID_POINT_AMOUNT", "사용 포인트가 결제 금액을 초과할 수 없습니다."),
 
     // 상태값(Status) 도메인 검증
     INVALID_MEMBER_STATUS(HttpStatus.BAD_REQUEST, "INVALID_MEMBER_STATUS", "유효하지 않은 회원 상태입니다."),
@@ -54,6 +55,7 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품이 존재하지 않습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문 내역이 존재하지 않습니다."),
     WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "WALLET_NOT_FOUND", "회원의 페이머니 지갑을 찾을 수 없습니다."),
+    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND", "장바구니 항목을 찾을 수 없습니다."),
 
 
     // =========================================================================
