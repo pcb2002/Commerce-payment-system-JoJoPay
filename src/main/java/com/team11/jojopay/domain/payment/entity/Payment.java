@@ -69,6 +69,14 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
     return payment;
   }
 
+  /**
+   * [Rich Domain Model] 결제 대기 상태를 취소 상태로 변경합니다.
+   * 주로 결제 도중 사용자가 이탈하거나 검증 실패 시 호출됩니다.
+   */
+  public void cancel() {
+        this.status = PaymentStatus.CANCELED;
+    }
+
   // 비즈니스 로직: 결제 완료 처리
   public void complete() {
     this.status = PaymentStatus.COMPLETED;

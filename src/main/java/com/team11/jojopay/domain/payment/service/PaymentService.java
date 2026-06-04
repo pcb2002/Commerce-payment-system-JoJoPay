@@ -67,7 +67,7 @@ public class PaymentService {
 
     // 최종 결제 상태 완료 처리 및 승인 시간 기록
     payment.complete();
-    payment.getOrder().complete(); // 주문 엔티티의 상태도 완료로 변경
+    payment.getOrder().completeOrder(); // 주문 엔티티의 상태도 완료로 변경
 
     return PaymentResponse.from(payment);
   }
@@ -77,7 +77,7 @@ public class PaymentService {
    */
   private void validatePortOneStatus(Payment payment, PortOnePaymentResponse portoneData) {
     // 결제 상태가 'PAID'가 아니거나 금액이 다르면 예외 발생
-    if (!"PAID".equals(portoneData.getStatus()) ||
+    if (!"PAID".equals(porton가eData.getStatus()) ||
         !payment.getAmount().equals(portoneData.getAmount().getTotal())) {
       payment.fail(); // 엔티티 상태 변경
       throw new ServiceException(ErrorCode.VALIDATION_FAILED);

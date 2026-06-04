@@ -65,6 +65,8 @@ public enum ErrorCode {
     // =========================================================================
     EMAIL_DUPLICATE(HttpStatus.CONFLICT, "EMAIL_DUPLICATE", "이미 사용 중인 이메일입니다."),
     INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "INSUFFICIENT_STOCK", "상품 재고가 부족합니다."),
+    ORDER_CANNOT_BE_CANCELLED(HttpStatus.CONFLICT, "ORDER_CANNOT_BE_CANCELLED", "이미 결제가 완료된 주문은 취소할 수 없습니다."),
+    ORDER_ALREADY_BE_CANCELLED(HttpStatus.CONFLICT, "ORDER_ALREADY_BE_CANCELLED", "이미 취소 처리된 주문입니다."),
     PRODUCT_DISCONTINUED(HttpStatus.CONFLICT, "PRODUCT_DISCONTINUED", "판매가 중단(단종)된 전자제품은 주문할 수 없습니다."),
     PRODUCT_ALREADY_DELETED(HttpStatus.CONFLICT, "PRODUCT_ALREADY_DELETED", "이미 삭제 처리된 상품입니다."),
     MEMBER_ALREADY_DELETED(HttpStatus.CONFLICT, "MEMBER_ALREADY_DELETED", "이미 탈퇴 또는 삭제 처리된 회원입니다."),
