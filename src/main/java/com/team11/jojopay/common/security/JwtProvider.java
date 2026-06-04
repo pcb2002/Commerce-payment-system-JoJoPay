@@ -1,5 +1,6 @@
 package com.team11.jojopay.common.security;
 
+import com.team11.jojopay.domain.member.entity.Member;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
