@@ -37,16 +37,16 @@ public class Order extends BaseTimeEntity {
     private OrderStatus status; // 주문 상태 (결제대기, 주문완료, 주문취소)
 
     @Column(nullable = false)
-    private Integer totalAmount; // 주문 총액
+    private Long totalAmount; // 주문 총액
 
     @Column(nullable = false)
-    private Integer usedPoint; // 사용 포인트
+    private Long usedPoint; // 사용 포인트
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     // 비즈니스 로직 및 생성자
-    public static Order createOrder(Long memberId, String orderNumber, Integer totalAmount, Integer usedPoint) {
+    public static Order createOrder(Long memberId, String orderNumber, Long totalAmount, Long usedPoint) {
         Order order = new Order();
         order.memberId = memberId;
         order.orderNumber = orderNumber;
@@ -59,6 +59,10 @@ public class Order extends BaseTimeEntity {
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setOrder(this);
+    }
+
+    public void updateTotalAmount(Long totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public void completeOrder() {

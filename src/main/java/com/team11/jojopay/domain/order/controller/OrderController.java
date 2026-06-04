@@ -1,8 +1,10 @@
 package com.team11.jojopay.domain.order.controller;
 
 import com.team11.jojopay.common.response.CommonApiResponse;
+import com.team11.jojopay.domain.order.dto.request.OrderCreateRequest;
 import com.team11.jojopay.domain.order.dto.request.OrderPreviewRequest;
 import com.team11.jojopay.domain.order.dto.response.OrderPreviewResponse;
+import com.team11.jojopay.domain.order.dto.response.OrderResponse;
 import com.team11.jojopay.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +39,18 @@ public class OrderController {
         // 서비스 호출 및 응답 반환
         OrderPreviewResponse response = orderService.preview(memberId, request);
         return CommonApiResponse.success(OK, "주문서 미리보기 성공", response);
+    }
+
+    /**
+     * [주문 생성]
+     * 비즈니스 로직 없이 Service 호출 후 CommonApiResponse로 감싸서 반환합니다.
+     */
+    @PostMapping
+    public CommonApiResponse<OrderResponse> createOrder(
+            @AuthenticationPrincipal Long memberId,
+            @Valid @RequestBody OrderCreateRequest request) {
+
+        OrderResponse response = orderService.createOrder(memberId, request);
+        return CommonApiResponse.success(OK, "주문 성공", response); // 규약에 맞춘 공통 응답 객체
     }
 }
