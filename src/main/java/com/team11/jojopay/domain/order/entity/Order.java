@@ -1,6 +1,8 @@
 package com.team11.jojopay.domain.order.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -63,6 +65,17 @@ public class Order extends BaseTimeEntity {
 
     public void updateTotalAmount(Long totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public void calculateAndValidateAmount(long totalAmount, long usedPoint) {
+        this.totalAmount = totalAmount;
+        this.usedPoint = usedPoint;
+
+        long pgRealAmount = totalAmount - usedPoint;
+
+        if (pgRealAmount < 0) {
+            throw new ServiceException(ErrorCode.INVALID_POINT_AMOUNT);
+        }
     }
 
     public void completeOrder() {
