@@ -77,7 +77,7 @@ public class PaymentService {
    */
   private void validatePortOneStatus(Payment payment, PortOnePaymentResponse portoneData) {
     // 결제 상태가 'PAID'가 아니거나 금액이 다르면 예외 발생
-    if (!"PAID".equals(porton가eData.getStatus()) ||
+    if (!"PAID".equals(portoneData.getStatus()) ||
         !payment.getAmount().equals(portoneData.getAmount().getTotal())) {
       payment.fail(); // 엔티티 상태 변경
       throw new ServiceException(ErrorCode.VALIDATION_FAILED);
