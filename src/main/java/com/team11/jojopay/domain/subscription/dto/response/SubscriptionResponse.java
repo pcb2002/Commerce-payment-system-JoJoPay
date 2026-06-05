@@ -1,9 +1,8 @@
 package com.team11.jojopay.domain.subscription.dto.response;
 
 import com.team11.jojopay.domain.subscription.entity.Subscription;
-import com.team11.jojopay.domain.subscription.enums.SubscriptionPlan;
 import com.team11.jojopay.domain.subscription.enums.SubscriptionStatus;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.Getter;
 
 @Getter
@@ -13,14 +12,14 @@ public class SubscriptionResponse {
   private final String planName;
   private final Long price;
   private final SubscriptionStatus status;
-  private final LocalDateTime nextBillingDate;
+  private final LocalDate nextBillingDate;
 
   private SubscriptionResponse(
       Long subscriptionId,
       String planName,
       Long price,
       SubscriptionStatus status,
-      LocalDateTime nextBillingDate
+      LocalDate nextBillingDate
   ) {
     this.subscriptionId = subscriptionId;
     this.planName = planName;
