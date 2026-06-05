@@ -1,5 +1,7 @@
 package com.team11.jojopay.domain.subscription.service;
 
+import static aQute.bnd.annotation.headers.Category.payment;
+
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
@@ -23,6 +25,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.team11.jojopay.domain.point.enums.PointTransactionType;
 
 @Service
 @RequiredArgsConstructor
