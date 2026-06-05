@@ -43,7 +43,7 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "order_id", nullable = false)
   private Order order;
-
+  
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
