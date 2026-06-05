@@ -1,7 +1,5 @@
 package com.team11.jojopay.order.service;
 
-package com.team11.jojopay.domain.order.service;
-
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.cartitem.entity.CartItem;
