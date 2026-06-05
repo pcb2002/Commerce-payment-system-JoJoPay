@@ -33,7 +33,7 @@ public class ProductListResponse {
                 .productId(product.getId())
                 .productName(product.getName())
                 .price(product.getPrice())
-                .stockQuantity(product.getStockQuantity())
+                .stockQuantity(product.getStock())
                 .category(product.getCategory())
                 .status(product.getStatus())
                 .build();
