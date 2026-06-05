@@ -3,6 +3,8 @@ package com.team11.jojopay.domain.payment.service;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
+import com.team11.jojopay.domain.member.repository.MemberRepository;
+import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.dto.response.PortOnePaymentResponse;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
   private final PaymentRepository paymentRepository;
+  private final MemberRepository memberRepository;
   private final PortOneClient portOneClient;
   private final ProductService productService; // 상품 정보 조회용 서비스
   private final PointService pointService; // 포인트 적립용 서비스
@@ -41,31 +44,25 @@ public class PaymentService {
 
     // 포트원 API 교차 검증
     PortOnePaymentResponse portoneData = portOneClient.getPaymentInfo(request.getPortonePaymentId());
+    Order order = payment.getOrder();
 
     try {
-      validatePortOneStatus(payment, portoneData);
-    } catch (ServiceException e) {
-      // 보상 트랜잭션: 포트원 서버는 성공 상태이나 금액 위변조 등으로 우리 서버 검증이 실패한 경우 자동 취소 호출
-      if (portoneData != null && "PAID".equals(portoneData.getStatus())) {
-        try {
-          portOneClient.cancelPayment(payment.getPortonePaymentId(), "서버 내부 정합성 검증 실패로 인한 자동 보상 취소");
-        } catch (Exception ex) {
-          throw new ServiceException(ErrorCode.PAYMENT_CANCEL_FAILED); // 500 에러 정의 활용
+            validatePortOneStatus(payment, portoneData);
+        } catch (ServiceException e) {
+            // [수정] 주문의 모든 상품에 대해 재고 복구 수행 (OrderItem 루프)
+            order.getOrderItems().forEach(orderItem ->
+                productService.increaseStock(orderItem.getProductId(), orderItem.getQuantity())
+            );
+            throw e;
         }
-      }
-      // 선차감 재고 복구 (단건 주문 건인 경우에만 수행)
-      if (payment.getOrder() != null) {
-        productService.increaseStock(payment.getOrder().getProduct().getId(), payment.getOrder().getQuantity());
-      }
-      throw e;
-    }
 
     // 연관된 객체(Member) 정보 가져오기
-    Member member = payment.getMember();
+    Member member = memberRepository.findById(order.getMemberId())
+                .orElseThrow(() -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND));
 
     // 포인트 복합 결제 처리 (사용한 포인트가 있는 경우)
     if (payment.getUsedPoint() > 0) {
-      pointService.usePoint(member.getId(), payment.getUsedPoint(), payment);
+      pointService.usePoint(member.getId(), payment.getUsedPoint(), order.getOrderNumber());
     }
 
     // 등급별 포인트 차등 적립 정책 구현 (실 결제 금액의 1%)
