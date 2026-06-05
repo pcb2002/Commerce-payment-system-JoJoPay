@@ -29,11 +29,20 @@ spring:
       path: /h2-console
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
+    # 테스트를 위한 세팅
+    defer-datasource-initialization: true # Hibernate가 테이블을 다 만든 후에 data.sql을 실행하도록 지연시킴
+
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect # H2 방언 사용
+  # 테스트를 위한 세팅
+  sql:
+    init:
+      mode: always # 항상 data.sql 스크립트를 실행
+
 jwt:
   secret-key: localEnvDummySecretKeyForJojoPayProjectTest12345!
   access-token-valid-time: 36000000

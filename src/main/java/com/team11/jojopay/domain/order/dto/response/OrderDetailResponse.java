@@ -58,7 +58,7 @@ public class OrderDetailResponse {
             return OrderItemSnapshotResponse.builder()
                     .productId(item.getProductId())
                     .productName(item.getProductName())
-                    .priceAtOrder(item.getPrice())
+                    .priceAtOrder(item.getPriceAtOrder())
                     .quantity(item.getQuantity())
                     .build();
         }
