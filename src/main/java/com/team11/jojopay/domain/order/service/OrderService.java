@@ -14,7 +14,6 @@ import com.team11.jojopay.domain.order.validator.OrderValidator;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
 import com.team11.jojopay.domain.product.entity.Product;
-import com.team11.jojopay.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -206,17 +206,22 @@ public class OrderService {
         // 2. 도메인 로직: 주문 상태 취소 처리 (엔티티 스스로 상태 검증)
         order.cancelOrder();
 
-        // 3. 재고 원상 복구 (Validator를 통해 락이 걸린 상품을 가져옴)
-        for (OrderItem orderItem : order.getOrderItems()) {
+        // 3. 데드락 방지: 상품 ID를 기준으로 오름차순 정렬
+        // (JPA 영속성 컬렉션의 안전한 정렬을 위해 새로운 리스트 생성)
+        List<OrderItem> sortedOrderItems = new ArrayList<>(order.getOrderItems());
+        sortedOrderItems.sort(Comparator.comparing(OrderItem::getProductId));
+
+        // 4. 재고 원상 복구 (정렬된 순서대로 Validator를 통해 락 획득)
+        for (OrderItem orderItem : sortedOrderItems) {
             Product product = orderValidator.validateAndGetProductWithLock(orderItem.getProductId());
             product.increaseStock(orderItem.getQuantity()); // 엔티티 스스로 재고 복구
         }
 
-        // 4. Validator에게 위임: 결제 내역 조회 후 취소 처리
+        // 5. Validator에게 위임: 결제 내역 조회 후 취소 처리
         Payment payment = orderValidator.validateAndGetPayment(order);
         payment.cancel();
 
-        // 5. 응답 DTO 조립 반환
+        // 6. 응답 DTO 조립 반환
         return OrderCancelResponse.from(order);
     }
 }
