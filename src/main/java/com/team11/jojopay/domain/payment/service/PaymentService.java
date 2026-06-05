@@ -3,6 +3,8 @@ package com.team11.jojopay.domain.payment.service;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
+import com.team11.jojopay.domain.member.repository.MemberRepository;
+import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.dto.response.PortOnePaymentResponse;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
   private final PaymentRepository paymentRepository;
+  private final MemberRepository memberRepository;
   private final PortOneClient portOneClient;
   private final ProductService productService; // 상품 정보 조회용 서비스
   private final PointService pointService; // 포인트 적립용 서비스
@@ -31,7 +34,7 @@ public class PaymentService {
   @Transactional
   public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
     // 기존 결제 정보 조회
-    Payment payment = paymentRepository.findByPortonePaymentId(request.getPortonePaymentId())
+    Payment payment = paymentRepository.findByPortonePaymentIdWithLock(request.getPortonePaymentId())
         .orElseThrow(() -> new ServiceException(ErrorCode.ORDER_NOT_FOUND));
 
     // 이미 완료된 결제인지 체크
@@ -41,33 +44,40 @@ public class PaymentService {
 
     // 포트원 API 교차 검증
     PortOnePaymentResponse portoneData = portOneClient.getPaymentInfo(request.getPortonePaymentId());
+    Order order = payment.getOrder();
 
     try {
-      validatePortOneStatus(payment, portoneData);
-    } catch (ServiceException e) {
-      // 결제 검증 실패 시 선 차감된 재고 복구 로직 호출
-      productService.increaseStock(payment.getOrder().getProduct().getId(), payment.getOrder().getQuantity());
-      throw e; // 예외 재발생
-    }
+            validatePortOneStatus(payment, portoneData);
+        } catch (ServiceException e) {
+            // [수정] 주문의 모든 상품에 대해 재고 복구 수행 (OrderItem 루프)
+            order.getOrderItems().forEach(orderItem ->
+                productService.increaseStock(orderItem.getProductId(), orderItem.getQuantity())
+            );
+            throw e;
+        }
 
     // 연관된 객체(Member) 정보 가져오기
-    Member member = payment.getMember();
+    Member member = memberRepository.findById(order.getMemberId())
+                .orElseThrow(() -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND));
 
     // 포인트 복합 결제 처리 (사용한 포인트가 있는 경우)
     if (payment.getUsedPoint() > 0) {
-      pointService.usePoint(member.getId(), payment.getUsedPoint(), payment);
+      pointService.usePoint(member.getId(), payment.getUsedPoint(), order.getOrderNumber());
     }
 
-    // 포인트 적립 로직 (실 결제 금액의 1%)
-    Long earnPoint = (long) (payment.getAmount() * 0.01);
+    // 등급별 포인트 차등 적립 정책 구현 (실 결제 금액의 1%)
+    double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
+    Long earnPoint = (long) (payment.getPgRealAmount() * earnRate);
     pointService.earnPoint(member, earnPoint, payment);
 
     // [멤버십]  누적 결제 금액 업데이트 및 등급 자동 갱신
-    member.increaseTotalPaymentAmount(payment.getAmount());
+    member.increaseTotalPaymentAmount(payment.getPgRealAmount());
 
     // 최종 결제 상태 완료 처리 및 승인 시간 기록
     payment.complete();
-    payment.getOrder().completeOrder(); // 주문 엔티티의 상태도 완료로 변경
+    if (payment.getOrder() != null) {
+      payment.getOrder().completeOrder(); // 주문 엔티티의 상태도 완료로 변경
+    }
 
     return PaymentResponse.from(payment);
   }
@@ -78,7 +88,7 @@ public class PaymentService {
   private void validatePortOneStatus(Payment payment, PortOnePaymentResponse portoneData) {
     // 결제 상태가 'PAID'가 아니거나 금액이 다르면 예외 발생
     if (!"PAID".equals(portoneData.getStatus()) ||
-        !payment.getAmount().equals(portoneData.getAmount().getTotal())) {
+        !payment.getPgRealAmount().equals(portoneData.getAmount().getTotal())) {
       payment.fail(); // 엔티티 상태 변경
       throw new ServiceException(ErrorCode.VALIDATION_FAILED);
     }

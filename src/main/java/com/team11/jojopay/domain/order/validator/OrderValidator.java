@@ -5,6 +5,8 @@ import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.cartitem.entity.CartItem;
 import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
 import com.team11.jojopay.domain.order.entity.Order;
+import com.team11.jojopay.domain.order.entity.OrderItem;
+import com.team11.jojopay.domain.order.reopsitory.OrderItemRepository;
 import com.team11.jojopay.domain.order.reopsitory.OrderRepository;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
@@ -14,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -24,6 +28,7 @@ public class OrderValidator {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final OrderItemRepository orderItemRepository;
 
     /**
      * 장바구니 아이템 유효성 및 본인 소유 검증
@@ -33,6 +38,9 @@ public class OrderValidator {
         if (cartItems.isEmpty()) {
             throw new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND);
         }
+        // 데드락 방지: 상품 ID 기준으로 오름차순 정렬 후 락 획득
+        cartItems.sort(Comparator.comparing(CartItem::getProductId));
+
         return cartItems;
     }
 
@@ -91,5 +99,19 @@ public class OrderValidator {
     public Product validateAndGetProductWithLock(Long productId) {
         return productRepository.findByIdWithLock(productId)
                 .orElseThrow(() -> new ServiceException(ErrorCode.PRODUCT_NOT_FOUND));
+    }
+
+    /**
+     * [환불 서비스용]
+     */
+    public List<OrderItem> validateAndGetOrderItems(List<Long> orderItemIds, Long memberId) {
+        List<OrderItem> orderItems = orderItemRepository.findAllByIdInAndOrderMemberId(orderItemIds, memberId);
+
+        // 요청한 상품 개수와 DB에서 회원이 소유한 것으로 확인된 상품 개수가 다르면 (타인의 상품 ID가 섞여 있으면)
+        if (orderItems.size() != orderItemIds.size()) {
+            throw new ServiceException(ErrorCode.INVALID_QUANTITY); // 예: 상품 개수 다름
+        }
+
+        return orderItems;
     }
 }
