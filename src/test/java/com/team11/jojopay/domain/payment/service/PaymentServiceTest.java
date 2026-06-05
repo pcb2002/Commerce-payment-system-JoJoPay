@@ -91,12 +91,12 @@ class PaymentServiceTest {
     PaymentResponse response = paymentService.confirmPayment(request);
 
     // then
-    // 🔴 [수정 완료] 기존의 usePoint 대신 진짜 코드에 작성된 pointService.createHistory 방식 검증
+    // 기존의 usePoint 대신 진짜 코드에 작성된 pointService.createHistory 방식 검증
     verify(pointService, times(1)).createHistory(
         eq(mockMember), eq(mockPayment), eq(PointTransactionType.USE), eq(5000L)
     );
 
-    // 🔴 [수정 완료] 기존의 earnPoint 대신 진짜 코드에 작성된 pointService.createHistory 방식 검증
+    // 기존의 earnPoint 대신 진짜 코드에 작성된 pointService.createHistory 방식 검증
     long expectedEarnPoint = (long) (50000L * mockEarnRate); // 50,000 * 0.01 = 500원
     verify(pointService, times(1)).createHistory(
         eq(mockMember), eq(mockPayment), eq(PointTransactionType.EARN), eq(expectedEarnPoint)
@@ -138,7 +138,7 @@ class PaymentServiceTest {
     PortOnePaymentResponse mockPortOneResponse = mock(PortOnePaymentResponse.class);
     Amount mockAmount = mock(Amount.class);
     given(mockPortOneResponse.getStatus()).willReturn("PAID");
-    given(mockAmount.getTotal()).willReturn(10000L); // 🔴 금액 불일치 발생
+    given(mockAmount.getTotal()).willReturn(10000L); // 금액 불일치 발생
     given(mockPortOneResponse.getAmount()).willReturn(mockAmount);
 
     given(paymentRepository.findByPortonePaymentIdWithLock(request.getPortonePaymentId()))
