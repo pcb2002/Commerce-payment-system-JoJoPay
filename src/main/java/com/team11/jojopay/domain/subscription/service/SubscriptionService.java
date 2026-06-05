@@ -49,6 +49,7 @@ public class SubscriptionService {
 
     Member member = memberService.findMemberById(memberId);
 
+    // 활성 구독은 회원당 1개만 허용
     subscriptionRepository.findByMemberIdAndStatus(memberId, SubscriptionStatus.ACTIVE)
         .ifPresent(subscription -> {
           throw new ServiceException(ErrorCode.ALREADY_ACTIVE_SUBSCRIPTION);
@@ -56,15 +57,19 @@ public class SubscriptionService {
 
     LocalDate nextBillingDate = LocalDate.now().plusMonths(1);
 
+    // 구독 시작에 사용할 결제수단이 로그인한 회원의 것인지 확인
     BillingKey billingKey = billingKeyRepository.findByIdAndMemberId(
         request.getBillingKeyId(),
         memberId
     ).orElseThrow(() -> new ServiceException(ErrorCode.BILLING_KEY_NOT_FOUND));
 
+    // 삭제된 결제수단으로 구독이 시작되지 않도록 ACTIVE 상태 검증
     if (billingKey.getStatus() != BillingKeyStatus.ACTIVE) {
       throw new ServiceException(ErrorCode.BILLING_KEY_NOT_FOUND);
     }
 
+    // 구독 생성 전 빌링키 기반 첫 결제 요청
+    // 첫 결제 실패 시 예외가 발생하여 구독은 생성되지 않음
     portOneClient.scheduleBillingKeyPayment(
         billingKey.getCustomerUid(),
         "SUB_FIRST_" + memberId,
