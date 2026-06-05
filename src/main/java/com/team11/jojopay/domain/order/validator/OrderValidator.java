@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -33,6 +35,9 @@ public class OrderValidator {
         if (cartItems.isEmpty()) {
             throw new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND);
         }
+        // 데드락 방지: 상품 ID 기준으로 오름차순 정렬 후 락 획득
+        cartItems.sort(Comparator.comparing(CartItem::getProductId));
+
         return cartItems;
     }
 
