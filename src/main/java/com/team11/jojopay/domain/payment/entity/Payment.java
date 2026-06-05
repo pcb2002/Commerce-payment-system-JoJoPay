@@ -48,6 +48,9 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
 
+  @Column(name = "subscription_id", nullable = true)
+  private Long subscriptionId;      
+
   @Column(nullable = false, unique = true)
   private String portonePaymentId; // 포트원 고유 식별자
 
