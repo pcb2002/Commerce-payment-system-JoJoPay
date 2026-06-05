@@ -48,7 +48,7 @@ public class PaymentService {
       // 보상 트랜잭션: 포트원 서버는 성공 상태이나 금액 위변조 등으로 우리 서버 검증이 실패한 경우 자동 취소 호출
       if (portoneData != null && "PAID".equals(portoneData.getStatus())) {
         try {
-          portOneClient.cancelPayment(payment.getPortonePaymentId(), "서버 내부 정합성 검증 실패로 인한 자동 보상 취소");
+          portOneClient.cancelPayment(payment.getPortonePaymentId(), "서버 내부 정합성 검증 실패로 인한 자동 보상 취소", payment.getPgRealAmount());
         } catch (Exception ex) {
           throw new ServiceException(ErrorCode.PAYMENT_CANCEL_FAILED); // 500 에러 정의 활용
         }

@@ -2,6 +2,7 @@ package com.team11.jojopay.domain.point.service;
 
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.service.MemberService;
+import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.point.dto.response.PointBalanceResponse;
 import com.team11.jojopay.domain.point.dto.response.PointHistoryResponse;
 import com.team11.jojopay.domain.point.entity.PointHistory;
@@ -63,6 +64,29 @@ public class PointService {
         pointRepository.save(history);
 
         return new PointBalanceResponse(member.getPointBalance());
+    }
+
+    @Transactional
+    public void createHistory(Member member, Payment payment, PointTransactionType type, Long amount) {
+
+        // 1. 회원의 실제 잔액 가감산 처리 (타입별 분기)
+        // 💡 복구(USE_RECOVERY)면 플러스, 몰수(EARN_FORFEIT)면 마이너스 처리
+        if (type == PointTransactionType.EARN || type == PointTransactionType.USE_RECOVERY) {
+            member.addPoint(amount);
+        } else if (type == PointTransactionType.USE || type == PointTransactionType.EARN_FORFEIT) {
+            member.usePoint(amount);
+        }
+
+        // 2. PointHistory 엔티티 생성
+        // 💡 이때 엔티티 내부에서 determineAmountByTransactionType()이 돌아가며 부호가 -로 이쁘게 변환되어 저장됩니다.
+        PointHistory history = PointHistory.builder()
+                .member(member)
+                .payment(payment)
+                .transactionType(type)
+                .amount(amount)
+                .build();
+
+        pointRepository.save(history);
     }
 
 }

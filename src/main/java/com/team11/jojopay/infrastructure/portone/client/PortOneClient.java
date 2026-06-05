@@ -59,20 +59,20 @@ public class PortOneClient {
    * 에러가 포착되었을 때, 이미 긁혀버린 외부 카드 결제를 '서버단에서 강제로 환불(취소)'시키기 위해 호출합니다.
    * 주소창 뒤에 /cancel을 붙이고, 바디에 취소 사유를 담아 POST로 전송합니다.
    */
-  public void cancelPayment(String portonePaymentId, String reason) {
+  public void cancelPayment(String portonePaymentId, String reason, Long amount) {
     String url = apiUrl + "/payments/" + portonePaymentId + "/cancel";
 
     HttpHeaders headers = createHeaders();
 
     Map<String, Object> body = new HashMap<>();
     body.put("reason", reason);
+    body.put("amount", amount); // 💡 포트원 API 서버에 "이 금액만큼 부분 취소해줘"라고 전달!
 
     HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
     try {
       restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
     } catch (Exception e) {
-      // 결제 검증은 실패했는데 외부 취소 요청마저 실패하면, 돈은 묶이고 데이터는 꼬이는 치명적인 상태가 되기에 시스템 관리자가 즉시 인지할 수 있도록 가장 무거운 시스템 에러 코드를 던집니다.
       throw new ServiceException(ErrorCode.PAYMENT_CANCEL_FAILED);
     }
   }
