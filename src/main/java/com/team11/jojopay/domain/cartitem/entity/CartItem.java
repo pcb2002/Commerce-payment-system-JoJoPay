@@ -71,7 +71,7 @@ public class CartItem extends BaseTimeEntity {
     }
 
     public Integer getQuantity() {
-        return this.product.getStockQuantity();
+        return this.product.getStock();
     }
 
     // 수량 증가 - 동일 상품 다시 담을 시 사용
@@ -95,5 +95,16 @@ public class CartItem extends BaseTimeEntity {
      */
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
+    }
+
+    public CartItem(
+            Cart cart,
+            Product product,
+            Integer quantity
+    ) {
+
+        this.cart = cart;
+        this.product = product;
+        this.quantity = quantity;
     }
 }

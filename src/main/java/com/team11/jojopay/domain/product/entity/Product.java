@@ -28,11 +28,11 @@ public class Product extends BaseTimeEntity {
 
     // 판매가
     @Column(nullable = false)
-    private Long price;
+    private Integer price;
 
     // 재고 수량
     @Column(nullable = false)
-    private Integer stockQuantity;
+    private Integer stock;
 
     // 상품 설명
     @Column(nullable = false, length = 1000, columnDefinition = "TEXT")
@@ -78,7 +78,7 @@ public class Product extends BaseTimeEntity {
         }
 
         // 2. 재고 부족 검증
-        if (this.stockQuantity < quantity) {
+        if (this.stock < quantity) {
             throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
         }
     }
@@ -89,7 +89,7 @@ public class Product extends BaseTimeEntity {
      */
     public void decreaseStock(Integer quantity) {
         validateOrderable(quantity); // 차감 전 판매 상태 및 재고를 다시 한번 확실하게 검증!
-        this.stockQuantity -= quantity;
+        this.stock -= quantity;
     }
 
     /**
@@ -97,6 +97,6 @@ public class Product extends BaseTimeEntity {
      * @param quantity 복구할 수량
      */
     public void increaseStock(Integer quantity) {
-        this.stockQuantity += quantity;
+        this.stock += quantity;
     }
 }
