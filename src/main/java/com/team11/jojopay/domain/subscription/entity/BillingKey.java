@@ -66,4 +66,8 @@ public class BillingKey extends BaseTimeEntity {
   ) {
     return new BillingKey(member, customerUid, cardName, cardNumber);
   }
+
+  public void delete() {
+    this.status = BillingKeyStatus.DELETED;
+  }
 }

@@ -7,7 +7,9 @@ import com.team11.jojopay.domain.member.repository.MemberRepository;
 import com.team11.jojopay.domain.subscription.dto.request.BillingKeyRegisterRequest;
 import com.team11.jojopay.domain.subscription.dto.response.BillingKeyResponse;
 import com.team11.jojopay.domain.subscription.entity.BillingKey;
+import com.team11.jojopay.domain.subscription.enums.BillingKeyStatus;
 import com.team11.jojopay.domain.subscription.repository.BillingKeyRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,5 +56,21 @@ public class BillingKeyService {
     BillingKey savedBillingKey = billingKeyRepository.save(billingKey);
 
     return BillingKeyResponse.from(savedBillingKey);
+  }
+
+  @Transactional(readOnly = true)
+  public List<BillingKeyResponse> getMyBillingKeys(Long memberId) {
+    return billingKeyRepository.findAllByMemberIdAndStatus(memberId, BillingKeyStatus.ACTIVE)
+        .stream()
+        .map(BillingKeyResponse::from)
+        .toList();
+  }
+
+  @Transactional
+  public void deleteBillingKey(Long memberId, Long billingKeyId) {
+    BillingKey billingKey = billingKeyRepository.findByIdAndMemberId(billingKeyId, memberId)
+        .orElseThrow(() -> new ServiceException(ErrorCode.BILLING_KEY_NOT_FOUND));
+
+    billingKey.delete();
   }
 }
