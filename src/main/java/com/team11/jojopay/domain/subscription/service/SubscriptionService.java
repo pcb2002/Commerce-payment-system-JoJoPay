@@ -1,5 +1,7 @@
 package com.team11.jojopay.domain.subscription.service;
 
+import static aQute.bnd.annotation.headers.Category.payment;
+
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
@@ -18,6 +20,7 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.team11.jojopay.domain.point.enums.PointTransactionType;
 
 @Service
 @RequiredArgsConstructor
@@ -121,7 +124,7 @@ public class SubscriptionService {
       double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
       Long earnPoint = (long) (subscription.getPrice() * earnRate);
       // 메서드 추가 요청
-      pointService.earnPoint(member, earnPoint, null);
+      pointService.createHistory(member, null, PointTransactionType.EARN, earnPoint);
 
       // 누적 금액 업데이트 및 등급 재계산
       member.increaseTotalPaymentAmount(subscription.getPrice());
