@@ -86,27 +86,28 @@ public class SubscriptionService {
     try {
       // 포트원 빌링키 결제 API 호출
       // BillingKey 엔티티 구현 후 실제 빌링키 조회하여 결제 요청
-//      portOneClient.scheduleBillingKeyPayment(subscription.getBillingKey(), "SUB_" + subscription.getId(), subscription.getPrice(), subscription.getPlan().getPlanName());
+      portOneClient.scheduleBillingKeyPayment(
+          subscription.getBillingKeyId(),
+          "SUB_" + subscription.getId(),
+          subscription.getPrice(),
+          subscription.getPlan().getPlanName());
 
       // 포인트 적립 (결제 직전 누적 금액 기준 등급 적용)
       // 현재 등급의 적립률을 가져와서 적립
-      double earnRate = member.getMembershipGrade().getRewardRate();
-      Long earnPoint = (long) (subscription.getPrice() * earnRate / 100);
+      double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
+      Long earnPoint = (long) (subscription.getPrice() * earnRate);
       // 메서드 추가 요청
-//      pointService.earnPoint(member, earnPoint, null);
+      pointService.earnPoint(member, earnPoint, null);
 
       // 누적 금액 업데이트 및 등급 재계산
       member.increaseTotalPaymentAmount(subscription.getPrice());
 
       // 다음 결제일 갱신
-      subscription.updateNextBillingDate(
-          subscription.getNextBillingDate().plusMonths(1)
-      );
+      subscription.updateNextBillingDate();
 
     } catch (Exception e) {
       // 정기 결제 실패 시 청구서에 실패 기록 후 상태 유지
-      // SubscriptionBilling 엔티티 구현 후 실패 이력 저장
-//      recordSubscriptionFail(subscription, e.getMessage());
+      subscription.markAsPastDue();
     }
   }
 }
