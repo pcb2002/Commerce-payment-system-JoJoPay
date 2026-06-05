@@ -34,5 +34,10 @@ public class Cart extends BaseTimeEntity {
     )
     private Member member;
 
+    // 장바구니 생성자
+    public Cart(Member member) {
+        this.member = member;
+    }
+
 
 }

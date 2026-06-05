@@ -34,9 +34,9 @@ public class Subscription extends BaseTimeEntity {
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
 
-  // BillingKey 엔티티 구현 전까지 임시로 ID 값만 저장
-  @Column(name = "billing_key_id", nullable = false)
-  private String billingKeyId;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "billing_key_id", nullable = false)
+  private BillingKey billingKey;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "plan_name", nullable = false, length = 50)
@@ -54,11 +54,11 @@ public class Subscription extends BaseTimeEntity {
 
   private Subscription(
       Member member,
-      String billingKeyId,
+      BillingKey billingKey,
       SubscriptionPlan plan,
       LocalDate nextBillingDate) {
     this.member = member;
-    this.billingKeyId = billingKeyId;
+    this.billingKey = billingKey;
     this.plan = plan;
     this.price = plan.getPrice();
     this.status = SubscriptionStatus.ACTIVE;
@@ -70,13 +70,13 @@ public class Subscription extends BaseTimeEntity {
    */
   public static Subscription start(
       Member member,
-      String billingKeyId,
+      BillingKey billingKey,
       SubscriptionPlan plan,
       LocalDate nextBillingDate
   ) {
     return new Subscription(
         member,
-        billingKeyId,
+        billingKey,
         plan,
         nextBillingDate
     );
