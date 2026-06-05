@@ -31,7 +31,7 @@ public class PaymentService {
   @Transactional
   public PaymentResponse confirmPayment(PaymentConfirmRequest request) {
     // 기존 결제 정보 조회
-    Payment payment = paymentRepository.findByPortonePaymentId(request.getPortonePaymentId())
+    Payment payment = paymentRepository.findByPortonePaymentIdWithLock(request.getPortonePaymentId())
         .orElseThrow(() -> new ServiceException(ErrorCode.ORDER_NOT_FOUND));
 
     // 이미 완료된 결제인지 체크
@@ -45,9 +45,19 @@ public class PaymentService {
     try {
       validatePortOneStatus(payment, portoneData);
     } catch (ServiceException e) {
-      // 결제 검증 실패 시 선 차감된 재고 복구 로직 호출
-      productService.increaseStock(payment.getOrder().getProduct().getId(), payment.getOrder().getQuantity());
-      throw e; // 예외 재발생
+      // 보상 트랜잭션: 포트원 서버는 성공 상태이나 금액 위변조 등으로 우리 서버 검증이 실패한 경우 자동 취소 호출
+      if (portoneData != null && "PAID".equals(portoneData.getStatus())) {
+        try {
+          portOneClient.cancelPayment(payment.getPortonePaymentId(), "서버 내부 정합성 검증 실패로 인한 자동 보상 취소");
+        } catch (Exception ex) {
+          throw new ServiceException(ErrorCode.PAYMENT_CANCEL_FAILED); // 500 에러 정의 활용
+        }
+      }
+      // 선차감 재고 복구 (단건 주문 건인 경우에만 수행)
+      if (payment.getOrder() != null) {
+        productService.increaseStock(payment.getOrder().getProduct().getId(), payment.getOrder().getQuantity());
+      }
+      throw e;
     }
 
     // 연관된 객체(Member) 정보 가져오기
@@ -68,7 +78,9 @@ public class PaymentService {
 
     // 최종 결제 상태 완료 처리 및 승인 시간 기록
     payment.complete();
-    payment.getOrder().completeOrder(); // 주문 엔티티의 상태도 완료로 변경
+    if (payment.getOrder() != null) {
+      payment.getOrder().completeOrder(); // 주문 엔티티의 상태도 완료로 변경
+    }
 
     return PaymentResponse.from(payment);
   }
@@ -79,7 +91,7 @@ public class PaymentService {
   private void validatePortOneStatus(Payment payment, PortOnePaymentResponse portoneData) {
     // 결제 상태가 'PAID'가 아니거나 금액이 다르면 예외 발생
     if (!"PAID".equals(portoneData.getStatus()) ||
-        !payment.getAmount().equals(portoneData.getAmount().getTotal())) {
+        !payment.getPgRealAmount().equals(portoneData.getAmount().getTotal())) {
       payment.fail(); // 엔티티 상태 변경
       throw new ServiceException(ErrorCode.VALIDATION_FAILED);
     }
