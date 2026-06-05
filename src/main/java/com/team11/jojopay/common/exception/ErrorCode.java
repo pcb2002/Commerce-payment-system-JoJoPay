@@ -72,6 +72,7 @@ public enum ErrorCode {
     MEMBER_ALREADY_DELETED(HttpStatus.CONFLICT, "MEMBER_ALREADY_DELETED", "이미 탈퇴 또는 삭제 처리된 회원입니다."),
     ALREADY_ACTIVE_SUBSCRIPTION(HttpStatus.CONFLICT, "ALREADY_ACTIVE_SUBSCRIPTION", "이미 활성 구독이 존재합니다."),
     NO_ACTIVE_SUBSCRIPTION(HttpStatus.CONFLICT, "NO_ACTIVE_SUBSCRIPTION", "해지할 활성 구독이 존재하지 않습니다."),
+    BILLING_KEY_DUPLICATE(HttpStatus.CONFLICT, "BILLING_KEY_DUPLICATE", "이미 등록된 빌링키입니다."),
 
     // 조조페이머니 핵심 비즈니스 정합성 정책
     INSUFFICIENT_BALANCE(HttpStatus.CONFLICT, "INSUFFICIENT_BALANCE", "페이머니 잔액이 부족하여 결제할 수 없습니다."),
