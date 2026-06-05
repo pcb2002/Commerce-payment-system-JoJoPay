@@ -43,7 +43,7 @@ public class ProductDetailResponse {
                 .productId(product.getId())
                 .productName(product.getName())
                 .price(product.getPrice())
-                .stockQuantity(product.getStockQuantity())
+                .stockQuantity(product.getStock())
                 .description(product.getDescription())
                 .category(product.getCategory())
                 .status(product.getStatus())

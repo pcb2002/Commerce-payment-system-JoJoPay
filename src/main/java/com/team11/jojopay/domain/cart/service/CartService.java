@@ -169,12 +169,12 @@ public class CartService {
          * 전체 합계 금액 계산
          */
         int totalAmount =
-                cartItems.stream()
-                        .mapToInt(cartItem ->
+                Math.toIntExact(cartItems.stream()
+                        .mapToLong(cartItem ->
                                 cartItem.getProduct().getPrice()
                                         * cartItem.getQuantity()
                         )
-                        .sum();
+                        .sum());
 
         /**
          * 응답 DTO 반환

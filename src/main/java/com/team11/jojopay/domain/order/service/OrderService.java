@@ -144,6 +144,7 @@ public class OrderService {
         // 정적 팩토리 메서드 사용
         Payment payment = Payment.createPayment(
                 order,
+                order.getMemberId(),
                 portonePaymentId,
                 totalAmount,
                 request.getUsedPoint()

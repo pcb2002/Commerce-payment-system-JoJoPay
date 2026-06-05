@@ -17,7 +17,7 @@ public class CartItemResponse {
     private final String productName;
 
 
-    private final Integer productPrice;
+    private final Long productPrice;
 
 
     private final Integer quantity;
@@ -28,16 +28,16 @@ public class CartItemResponse {
      *
      * 가격 * 수량
      */
-    private final Integer totalPrice;
+    private final Long totalPrice;
 
 
     public CartItemResponse(
             Long cartItemId,
             Long productId,
             String productName,
-            Integer productPrice,
+            Long productPrice,
             Integer quantity,
-            Integer totalPrice
+            Long totalPrice
     ) {
 
         this.cartItemId = cartItemId;
@@ -52,7 +52,7 @@ public class CartItemResponse {
 
     public static CartItemResponse from(CartItem cartItem) {
 
-        Integer totalPrice =
+        Long totalPrice =
                 cartItem.getProduct().getPrice()
                         * cartItem.getQuantity();
 

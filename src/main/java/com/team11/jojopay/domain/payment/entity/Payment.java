@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "payments", uniqueConstraints = {
+@Table(name = "payment", uniqueConstraints = {
         @UniqueConstraint(name = "uk_payment_order_id", columnNames = {"order_id"}),
         @UniqueConstraint(name = "uk_payment_portone_id", columnNames = {"portone_payment_id"})
     })
@@ -43,13 +43,12 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "order_id", nullable = true)
   private Order order;
-  
-  @ManyToOne(fetch = FetchType.LAZY)
+
   @JoinColumn(name = "member_id", nullable = false)
-  private Member member;
+  private Long memberId;
 
   @Column(name = "subscription_id", nullable = true)
-  private Long subscriptionId;      
+  private Long subscriptionId;
 
   @Column(nullable = false, unique = true)
   private String portonePaymentId; // 포트원 고유 식별자
@@ -82,10 +81,10 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
    * 정적 팩토리 메서드
    * 생성 시점에 Order 객체를 직접 받습니다.
    */
-  public static Payment createPayment(Order order,Member member, String portonePaymentId, Long amount, Long usedPoint) {
+  public static Payment createPayment(Order order, Long memberId, String portonePaymentId, Long amount, Long usedPoint) {
     Payment payment = new Payment();
     payment.order = order; // 연관관계 매핑
-    payment.member = member;
+    payment.memberId = memberId;
     payment.portonePaymentId = portonePaymentId;
     payment.amount = amount;
     payment.usedPoint = usedPoint;
