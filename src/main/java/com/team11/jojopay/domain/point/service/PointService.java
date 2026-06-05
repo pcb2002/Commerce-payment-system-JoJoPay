@@ -66,19 +66,30 @@ public class PointService {
         return new PointBalanceResponse(member.getPointBalance());
     }
 
+    /**
+     * 포인트 도메인의 통합 원칙에 따라 회원의 실제 포인트 잔액을 가감하고 가동 이력을 원장에 영속화합니다.
+     * 트랜잭션 타입 분기에 따라 회원(Member) 엔티티의 잔액 가감산 비즈니스 메서드를 호출하며,
+     * 엔티티 내부 차감 정책에 따라 원장(PointHistory) 테이블에 부호가 정제되어 최종 저장됩니다.
+     *
+     * @param member  포인트 변동이 발생하는 대상 회원 엔티티
+     * @param payment 포인트 변동의 원인이 된 원본 결제 마스터 엔티티 (더미 충전 시 null 허용)
+     * @param type    포인트 거래 유형 (EARN: 적립, USE: 사용, USE_RECOVERY: 사용분 복구, EARN_FORFEIT: 적립분 몰수)
+     * @param amount  이번 이력에서 증감시킬 절대값 금액 (음수 기호 없이 양수로 전달)
+     */
     @Transactional
     public void createHistory(Member member, Payment payment, PointTransactionType type, Long amount) {
 
         // 1. 회원의 실제 잔액 가감산 처리 (타입별 분기)
-        // 💡 복구(USE_RECOVERY)면 플러스, 몰수(EARN_FORFEIT)면 마이너스 처리
+        // 복구(USE_RECOVERY) 및 적립(EARN)은 플러스 처리, 사용(USE) 및 몰수(EARN_FORFEIT)는 마이너스 처리 수행
         if (type == PointTransactionType.EARN || type == PointTransactionType.USE_RECOVERY) {
             member.addPoint(amount);
         } else if (type == PointTransactionType.USE || type == PointTransactionType.EARN_FORFEIT) {
             member.usePoint(amount);
         }
 
-        // 2. PointHistory 엔티티 생성
-        // 💡 이때 엔티티 내부에서 determineAmountByTransactionType()이 돌아가며 부호가 -로 이쁘게 변환되어 저장됩니다.
+        // 2. PointHistory 엔티티 생성 및 영속화
+        // 빌더 패턴을 이용하여 히스토리 인스턴스를 조립하고 리포지토리를 통해 영석화합니다.
+        // 내부 도메인 규칙(determineAmountByTransactionType)에 의해 차감형 타입은 저장 시 음수로 이쁘게 정제됩니다.
         PointHistory history = PointHistory.builder()
                 .member(member)
                 .payment(payment)

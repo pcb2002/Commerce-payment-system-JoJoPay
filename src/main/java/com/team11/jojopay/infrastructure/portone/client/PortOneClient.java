@@ -35,7 +35,11 @@ public class PortOneClient {
   private String apiUrl;
 
   /**
-   * 포트원 V2 API를 통해 결제 상세 정보를 조회합니다.
+   * 포트원 V2 서버 엔진에 REST GET 웹 요청을 송출하여 해당 결제 건의 상세 거래 정보를 획득합니다.
+   *
+   * @param portonePaymentId 포트원 허브 채널사에서 고유하게 발급한 결제 원장 고유 식별 거래 코드 (TID)
+   * @return 포트원 측 원본 결제 상태정보 및 금액 필드가 매핑된 PortOnePaymentResponse DTO 객체
+   * @throws ServiceException 포트원 API 서버 장애 및 망 응답 타임아웃 지연 시 발생
    */
   public PortOnePaymentResponse getPaymentInfo(String portonePaymentId) {
     String url = apiUrl + "/payments/" + portonePaymentId;
@@ -53,11 +57,14 @@ public class PortOneClient {
   }
 
   /**
-   * 2. 외부 PG 보상 취소 API (강제 환불)
-   * * [구동방식]
-   * 우리 서버 내부 검증(예: 사용자가 요청한 결제 금액과 포트원이 승인한 금액이 다른 위변조 상황 등) 과정에서
-   * 에러가 포착되었을 때, 이미 긁혀버린 외부 카드 결제를 '서버단에서 강제로 환불(취소)'시키기 위해 호출합니다.
-   * 주소창 뒤에 /cancel을 붙이고, 바디에 취소 사유를 담아 POST로 전송합니다.
+   * 포트원 결제 취소 엔드포인트로 POST 원격 제어 신호를 송출하여 승인된 카드 금액을 강제 취소/환불 처리합니다.
+   * 오버로딩 또는 신규 기능 명세에 맞춤에 따라, 세 번째 파라미터로 정밀 취소 금액(amount)을 필수로 전송하도록 구현을 확장했습니다.
+   * 이 값을 지정하여 전송하면 포트원 V2 명세 규칙상 자동으로 '부분 환불' 체계로 인식되어 동작합니다.
+   *
+   * @param portonePaymentId 포트원 허브 채널사에서 발급한 고유 결제 식별 키 (TID)
+   * @param reason           고객이 기입한 환불 사유 정보 문자열 (포트원 대시보드 표출용)
+   * @param amount           이번 취소 회차에서 포트원 계좌/카드단에서 실제로 차감 취소시킬 실 정산금 금액
+   * @throws ServiceException 포트원 내부 밸리데이션 한도 실패 혹은 네트워크 게이트웨이 파손 시 발생
    */
   public void cancelPayment(String portonePaymentId, String reason, Long amount) {
     String url = apiUrl + "/payments/" + portonePaymentId + "/cancel";
@@ -66,7 +73,7 @@ public class PortOneClient {
 
     Map<String, Object> body = new HashMap<>();
     body.put("reason", reason);
-    body.put("amount", amount); // 💡 포트원 API 서버에 "이 금액만큼 부분 취소해줘"라고 전달!
+    body.put("amount", amount); // 포트원 API 서버에 "이 금액만큼 부분 취소해줘"라고 전달
 
     HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
@@ -78,14 +85,14 @@ public class PortOneClient {
   }
 
   /**
-   * 3. 스케줄러 정기 자동 결제 API (빌링키 비인증 결제)
-   * * [구동방식]
-   * 넷플릭스처럼 사용자의 비밀번호 입력 없이 정기적으로 돈을 출금하는 기능입니다.
-   * 자정마다 도는 스케줄러 배치가 회원들의 '빌링키(카드정보 암호화 열쇠)'를 들고 이 메서드를 호출합니다.
-   * * [멱등성 키(paymentId) 생성 규칙]
-   * 주문번호 뒤에 현재 타임스탬프 밀리초(System.currentTimeMillis())를 붙여 매번 유일한 고유 결제ID를 만듭니다.
-   * 만약 스케줄러 네트워크 지연으로 인해 동일한 요청이 중복으로 두 번 날아가더라도,
-   * 포트원 측에서 이 ID를 보고 중복 결제를 알아서 차단(멱등성 보장)해 주는 안전장치입니다.
+   * 정기 구독 결제를 처리를 위해 유저의 카드 암호화 열쇠인 빌링키(BillingKey)를 기반으로 자동 출금 결제를 수행합니다.
+   *
+   * @param billingKey 유저의 개인 카드 정보가 안전하게 래핑된 포트원 측 암호화 토큰 키
+   * @param orderId    멱등성 유지를 위해 조합될 고유 주문 고유 식별 정보 키
+   * @param amount     출금 결제 요청할 총 대금 원가액
+   * @param orderName  카드 영수증 명세서에 표출될 상품 대분류 명칭 정보
+   * @return 결제 승인 결과를 파싱한 PortOnePaymentResponse DTO 객체
+   * @throws ServiceException 한도 초과, 분실 카드, 혹은 구독 연동 모듈 장애 시 발생
    */
   public PortOnePaymentResponse scheduleBillingKeyPayment(String billingKey, String orderId, Long amount, String orderName) {
     String url = apiUrl + "/payments-by-billing-key";
@@ -110,16 +117,11 @@ public class PortOneClient {
   }
 
   /**
-   * 4. 포트원 웹훅 서명 검증 유틸 (HMAC-SHA256 사기 차단 장치)
-   * * [구동방식]
-   * 포트원 서버가 비동기로 우리 서버에게 "결제 완료됐어요"라고 알림 문자(웹훅)를 보냈을 때,
-   * 해커가 중간에서 가짜 위조 신호를 보낸 것인지 탐지하는 철통 보안 로직입니다.
-   * * [암호화 원리]
-   * 1. 포트원과 우리만 공유하는 비밀번호(secretKey)를 꺼냅니다.
-   * 2. 날아온 웹훅 본문 데이터(webhookBody)를 이 키와 함께 HmacSHA256 알고리즘 기계에 넣고 돌립니다.
-   * 3. 믹서기에서 나온 바이너리 해시 결과물(byte[] hash)을 16진수 문자열(Hex String)로 변환합니다.
-   * 4. 우리가 직접 계산한 이 디지털 봉인 인장과, 포트원이 편지 봉투(헤더)에 붙여서 보낸 인장이 일치하는지 비교합니다.
-   * * 일치하면 진짜 포트원이 보낸 신호이므로 true, 도중에 에러가 나거나 불일치하면 사기 요청으로 간주하고 false를 반환합니다.
+   * 포트원 웹훅 커넥터 서버에서 날아온 알림 신호의 무결성을 해시 코드로 상호 대조하여 해커의 위조 패킷 공격을 탐지 차단합니다.
+   *
+   * @param webhookBody             포트원 원격 서버가 비동기로 전송한 오리지널 JSON Plain 텍스트 문자열 바디
+   * @param receivedHeaderSignature 포트원 전송 패킷 HTTP 헤더인 'Authorization' 스펙 내 동봉된 해시 서명 문자열
+   * @return 대조 연산 결과 디지털 봉인 인장이 한 자의 오차도 없이 일치하여 검증에 통과하면 true, 데이터 오염이나 공격 탐지 시 false
    */
   public boolean verifyWebhookSignature(String webhookBody, String receivedHeaderSignature) {
     try {
@@ -148,9 +150,7 @@ public class PortOneClient {
   }
 
   /**
-   * [공통 내부 메서드] 포트원 V2 인증용 VIP 출입증 생성
-   * * 포트원 V2 REST API 공식 명세에 따라, 모든 요청 헤더의 'Authorization' 필드에
-   * "PortOne [내 시크릿키]"라는 규격을 강제 서명하여 헤더 객체를 만들어줍니다.
+   * 포트원 V2 REST API 공식 가이드라인 규격 인증을 통과하기 위해 헤더에 보안 암호화 시크릿 토큰 인장을 결합하는 공통 유틸 메서드입니다.
    */
   private HttpHeaders createHeaders() {
     HttpHeaders headers = new HttpHeaders();
