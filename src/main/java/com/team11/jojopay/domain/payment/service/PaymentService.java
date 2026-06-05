@@ -68,7 +68,7 @@ public class PaymentService {
     // 등급별 포인트 차등 적립 정책 구현 (실 결제 금액의 1%)
     double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
     Long earnPoint = (long) (payment.getPgRealAmount() * earnRate);
-    pointService.earnPoint(member, earnPoint, payment);
+    pointService.earnPoint(member, earnPoint, order.getOrderNumber());
 
     // [멤버십]  누적 결제 금액 업데이트 및 등급 자동 갱신
     member.increaseTotalPaymentAmount(payment.getPgRealAmount());

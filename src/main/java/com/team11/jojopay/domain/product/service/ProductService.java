@@ -37,6 +37,16 @@ public class ProductService {
         return ProductDetailResponse.from(findProduct);
     }
 
+    @Transactional
+    public void increaseStock(Long productId, Integer quantity) {
+      // 1. DB에서 상품을 조회 (비관적 락을 쓰거나 일반 조회 처리)
+      Product product = productRepository.findById(productId)
+          .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+
+      // 2. 엔티티 도메인 비즈니스 메서드 호출하여 재고 복구
+      product.increaseStock(quantity);
+    }
+
 
     // 상품 목록 조회
     @Transactional(readOnly = true)

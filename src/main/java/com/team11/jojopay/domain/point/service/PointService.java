@@ -2,6 +2,7 @@ package com.team11.jojopay.domain.point.service;
 
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.service.MemberService;
+import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.point.dto.response.PointBalanceResponse;
 import com.team11.jojopay.domain.point.dto.response.PointHistoryResponse;
 import com.team11.jojopay.domain.point.entity.PointHistory;
@@ -20,6 +21,46 @@ public class PointService {
 
     private final MemberService memberService;
     private final PointRepository pointRepository;
+
+
+    /**
+     * 결제 시 포인트를 차감하고 원장 이력을 기록합니다.
+     */
+    @Transactional
+    public void usePoint(Long memberId, Long amount, String orderNumber) {
+        Member member = memberService.findMemberById(memberId);
+
+        // 1. 회원 엔티티 내부에서 포인트 잔액 차감 검증 및 차감
+        member.usePoint(amount);
+
+        // 2. 포인트 사용 히스토리 원장 영속화
+        PointHistory history = PointHistory.builder()
+            .member(member)
+            .payment(null)
+            .transactionType(PointTransactionType.USE)
+            .amount(amount)
+            .build();
+        pointRepository.save(history);
+    }
+
+    /**
+     * 결제 완료 후 등급별 리워드 포인트를 적립하고 원장 이력을 기록합니다.
+     */
+    @Transactional
+    public void earnPoint(Member member, Long amount, String orderNumber) {
+
+        // 1. 회원 엔티티 포인트 잔액 증가
+        member.addPoint(amount);
+
+        // 2. 포인트 적립 히스토리 원장 영속화
+        PointHistory history = PointHistory.builder()
+            .member(member)
+            .payment(null)
+            .transactionType(PointTransactionType.EARN)
+            .amount(amount)
+            .build();
+        pointRepository.save(history);
+    }
 
     /**
      * 본인의 현재 포인트 잔액을 조회합니다.
