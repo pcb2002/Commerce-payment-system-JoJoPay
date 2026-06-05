@@ -41,7 +41,7 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   // ✅ Order와의 1:1 연관관계 매핑
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "order_id", nullable = false)
+  @JoinColumn(name = "order_id", nullable = true)
   private Order order;
   
   @ManyToOne(fetch = FetchType.LAZY)
@@ -89,6 +89,7 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
     payment.portonePaymentId = portonePaymentId;
     payment.amount = amount;
     payment.usedPoint = usedPoint;
+    payment.pgRealAmount = amount - usedPoint;
     payment.status = PaymentStatus.READY;
     return payment;
   }
