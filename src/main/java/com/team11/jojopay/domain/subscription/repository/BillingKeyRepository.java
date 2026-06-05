@@ -20,5 +20,5 @@ public interface BillingKeyRepository extends JpaRepository<BillingKey, Long> {
 
   // 특정 회원의 특정 상태 결제수단 목록을 조회
   // 예: ACTIVE 상태의 결제수단만 조회
-  List<BillingKey> findALlByMemberIdAndStatus(Long memberId, BillingKeyStatus status);
+  List<BillingKey> findAllByMemberIdAndStatus(Long memberId, BillingKeyStatus status);
 }

@@ -66,4 +66,12 @@ public class BillingKey extends BaseTimeEntity {
   ) {
     return new BillingKey(member, customerUid, cardName, cardNumber);
   }
+
+  /**
+   * 결제수단을 물리 삭제하지 않고 비활성화 처리
+   * 상태값만 DELETED로 변경
+   */
+  public void delete() {
+    this.status = BillingKeyStatus.DELETED;
+  }
 }

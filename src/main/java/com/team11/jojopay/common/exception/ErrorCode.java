@@ -60,6 +60,7 @@ public enum ErrorCode {
     WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "WALLET_NOT_FOUND", "회원의 페이머니 지갑을 찾을 수 없습니다."),
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND", "장바구니 항목을 찾을 수 없습니다."),
     SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPTION_NOT_FOUND", "구독 정보를 찾을 수 없습니다."),
+    BILLING_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "BILLING_KEY_NOT_FOUND", "빌링키를 찾을 수 없습니다."),
 
 
     // =========================================================================
