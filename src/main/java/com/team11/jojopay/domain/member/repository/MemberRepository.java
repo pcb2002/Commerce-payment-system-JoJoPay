@@ -25,8 +25,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   boolean existsByEmail(String email);
 
   /**
-   * 구독 정기 결제 처리 시 회원의 포인트 및 누적 결제 금액을 안전하게 변경하기 위해
-   * 회원 row에 비관적 락을 걸고 조회합니다.
+   * 포인트 적립/차감, 누적 결제 금액 변경처럼 회원 정보가 수정되는 작업에서
+   * 동시성 문제를 방지하기 위해 회원 row에 비관적 락을 걸고 조회
    *
    * 같은 회원에게 동시에 결제/포인트 적립 요청이 들어올 경우
    * Lost Update를 방지하기 위해 사용합니다.
