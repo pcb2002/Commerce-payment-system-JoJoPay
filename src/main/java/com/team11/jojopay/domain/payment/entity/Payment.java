@@ -1,6 +1,7 @@
 package com.team11.jojopay.domain.payment.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
+import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.point.entity.PointHistory;
@@ -13,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -39,8 +41,15 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
 
   // ✅ Order와의 1:1 연관관계 매핑
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "order_id", nullable = false)
+  @JoinColumn(name = "order_id", nullable = true)
   private Order order;
+  
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
+
+  @Column(name = "subscription_id", nullable = true)
+  private Long subscriptionId;      
 
   @Column(nullable = false, unique = true)
   private String portonePaymentId; // 포트원 고유 식별자
@@ -73,12 +82,14 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
    * 정적 팩토리 메서드
    * 생성 시점에 Order 객체를 직접 받습니다.
    */
-  public static Payment createPayment(Order order, String portonePaymentId, Long amount, Long usedPoint) {
+  public static Payment createPayment(Order order,Member member, String portonePaymentId, Long amount, Long usedPoint) {
     Payment payment = new Payment();
     payment.order = order; // 연관관계 매핑
+    payment.member = member;
     payment.portonePaymentId = portonePaymentId;
     payment.amount = amount;
     payment.usedPoint = usedPoint;
+    payment.pgRealAmount = amount - usedPoint;
     payment.status = PaymentStatus.READY;
     return payment;
   }
