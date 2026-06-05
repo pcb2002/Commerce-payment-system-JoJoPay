@@ -1,6 +1,9 @@
 package com.team11.jojopay.domain.scheduler;
 
 import com.team11.jojopay.domain.subscription.entity.Subscription;
+import com.team11.jojopay.domain.subscription.enums.SubscriptionStatus;
+import com.team11.jojopay.domain.subscription.repository.SubscriptionRepository;
+import com.team11.jojopay.domain.subscription.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.List;
