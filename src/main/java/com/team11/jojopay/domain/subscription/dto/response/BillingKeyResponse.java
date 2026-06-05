@@ -8,13 +8,9 @@ import lombok.Getter;
 public class BillingKeyResponse {
 
   private final Long billingKeyId;
-
   private final String customerUid;
-
   private final String cardName;
-
   private final String cardNumber;
-
   private final BillingKeyStatus status;
 
   private BillingKeyResponse(

@@ -6,17 +6,22 @@ import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.service.MemberService;
+import com.team11.jojopay.domain.point.enums.PointTransactionType;
 import com.team11.jojopay.domain.point.service.PointService;
 import com.team11.jojopay.domain.subscription.dto.request.SubscriptionStartRequest;
+import com.team11.jojopay.domain.subscription.dto.response.SubscriptionBillingResponse;
 import com.team11.jojopay.domain.subscription.dto.response.SubscriptionResponse;
 import com.team11.jojopay.domain.subscription.entity.BillingKey;
 import com.team11.jojopay.domain.subscription.entity.Subscription;
+import com.team11.jojopay.domain.subscription.entity.SubscriptionBilling;
 import com.team11.jojopay.domain.subscription.enums.BillingKeyStatus;
 import com.team11.jojopay.domain.subscription.enums.SubscriptionStatus;
 import com.team11.jojopay.domain.subscription.repository.BillingKeyRepository;
+import com.team11.jojopay.domain.subscription.repository.SubscriptionBillingRepository;
 import com.team11.jojopay.domain.subscription.repository.SubscriptionRepository;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +33,7 @@ public class SubscriptionService {
 
   private final SubscriptionRepository subscriptionRepository;
   private final BillingKeyRepository billingKeyRepository;
+  private final SubscriptionBillingRepository subscriptionBillingRepository;
 
   private final MemberService memberService;
   private final PortOneClient portOneClient;
@@ -71,11 +77,17 @@ public class SubscriptionService {
       throw new ServiceException(ErrorCode.BILLING_KEY_NOT_FOUND);
     }
 
+    // 첫 결제 성공 시 결제 이력에 저장할 PortOne 결제 식별자 생성
+    String paymentId = "SUB_FIRST_" + memberId + "_" + System.currentTimeMillis();
+
+    // 첫 결제가 적용되는 구독 기간
+    String billingPeriod = LocalDate.now() + " ~ " + nextBillingDate.minusDays(1);
+
     // 구독 생성 전 빌링키 기반 첫 결제 요청
-    // 첫 결제 실패 시 예외가 발생하여 구독은 생성되지 않음
+    // 첫 결제 실패 시 예외가 발생하여 구독 생성 및 결제 이력 저장은 실행되지 않음
     portOneClient.scheduleBillingKeyPayment(
         billingKey.getCustomerUid(),
-        "SUB_FIRST_" + memberId,
+        paymentId,
         request.getPlan().getPrice(),
         request.getPlan().getPlanName()
     );
@@ -88,6 +100,25 @@ public class SubscriptionService {
     );
 
     Subscription savedSubscription = subscriptionRepository.save(subscription);
+
+    // 첫 결제 성공 이력을 1회차 구독 결제 내역으로 저장
+    SubscriptionBilling subscriptionBilling = SubscriptionBilling.createSuccess(
+        savedSubscription,
+        1,
+        billingPeriod,
+        savedSubscription.getPrice(),
+        paymentId
+    );
+
+    subscriptionBillingRepository.save(subscriptionBilling);
+
+    double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
+    Long earnPoint = (long) (savedSubscription.getPrice() * earnRate);
+
+    // 결제 성공 후 포인트 적립 및 누적 결제 금액 반영
+    // 메서드 내부에서 멤버십 등급도 함께 계산
+    pointService.createHistory(member, null, PointTransactionType.EARN, earnPoint);
+    member.increaseTotalPaymentAmount(savedSubscription.getPrice());
 
     return SubscriptionResponse.from(savedSubscription);
   }
@@ -107,15 +138,30 @@ public class SubscriptionService {
     return SubscriptionResponse.from(subscription);
   }
 
+  // 현재 로그인한 회원의 구독을 조회한 뒤, 해당 구독의 결제 이력을 최신순으로 조회
+  @Transactional(readOnly = true)
+  public List<SubscriptionBillingResponse> getMySubscriptionBillings(Long memberId) {
+    Subscription subscription = subscriptionRepository.findByMemberId(memberId)
+        .orElseThrow(() -> new ServiceException(ErrorCode.SUBSCRIPTION_NOT_FOUND));
+
+    return subscriptionBillingRepository
+        .findAllBySubscriptionIdOrderByCreatedAtDesc(subscription.getId())
+        .stream()
+        .map(SubscriptionBillingResponse::from)
+        .toList();
+  }
+
   @Transactional
   public void renewSubscription(Subscription subscription) {
     Member member = subscription.getMember();
+
+    String paymentId = "SUB_RENEW_" + subscription.getId() + "_" + System.currentTimeMillis();
 
     try {
       // 포트원 빌링키 결제 API 호출
       portOneClient.scheduleBillingKeyPayment(
           subscription.getBillingKey().getCustomerUid(),
-          "SUB_" + subscription.getId(),
+          paymentId,
           subscription.getPrice(),
           subscription.getPlan().getPlanName());
 

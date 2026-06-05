@@ -88,20 +88,20 @@ public class PortOneClient {
    * 정기 구독 결제를 처리를 위해 유저의 카드 암호화 열쇠인 빌링키(BillingKey)를 기반으로 자동 출금 결제를 수행합니다.
    *
    * @param billingKey 유저의 개인 카드 정보가 안전하게 래핑된 포트원 측 암호화 토큰 키
-   * @param orderId    멱등성 유지를 위해 조합될 고유 주문 고유 식별 정보 키
+   * @param paymentId    멱등성 유지를 위해 조합될 고유 주문 고유 식별 정보 키
    * @param amount     출금 결제 요청할 총 대금 원가액
    * @param orderName  카드 영수증 명세서에 표출될 상품 대분류 명칭 정보
    * @return 결제 승인 결과를 파싱한 PortOnePaymentResponse DTO 객체
    * @throws ServiceException 한도 초과, 분실 카드, 혹은 구독 연동 모듈 장애 시 발생
    */
-  public PortOnePaymentResponse scheduleBillingKeyPayment(String billingKey, String orderId, Long amount, String orderName) {
+  public PortOnePaymentResponse scheduleBillingKeyPayment(String billingKey, String paymentId, Long amount, String orderName) {
     String url = apiUrl + "/payments-by-billing-key";
 
     HttpHeaders headers = createHeaders();
 
     Map<String, Object> body = new HashMap<>();
     body.put("billingKey", billingKey);
-    body.put("paymentId", orderId + "_" + System.currentTimeMillis());
+    body.put("paymentId", paymentId);
     body.put("amount", amount);
     body.put("orderName", orderName);
     body.put("currency", "KRW");
