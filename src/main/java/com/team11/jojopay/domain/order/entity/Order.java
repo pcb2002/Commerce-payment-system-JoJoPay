@@ -1,6 +1,8 @@
 package com.team11.jojopay.domain.order.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -37,16 +39,16 @@ public class Order extends BaseTimeEntity {
     private OrderStatus status; // 주문 상태 (결제대기, 주문완료, 주문취소)
 
     @Column(nullable = false)
-    private Integer totalAmount; // 주문 총액
+    private Long totalAmount; // 주문 총액
 
     @Column(nullable = false)
-    private Integer usedPoint; // 사용 포인트
+    private Long usedPoint; // 사용 포인트
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     // 비즈니스 로직 및 생성자
-    public static Order createOrder(Long memberId, String orderNumber, Integer totalAmount, Integer usedPoint) {
+    public static Order createOrder(Long memberId, String orderNumber, Long totalAmount, Long usedPoint) {
         Order order = new Order();
         order.memberId = memberId;
         order.orderNumber = orderNumber;
@@ -61,11 +63,35 @@ public class Order extends BaseTimeEntity {
         orderItem.setOrder(this);
     }
 
+    public void updateTotalAmount(Long totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public void calculateAndValidateAmount(long totalAmount, long usedPoint) {
+        this.totalAmount = totalAmount;
+        this.usedPoint = usedPoint;
+
+        long pgRealAmount = totalAmount - usedPoint;
+
+        if (pgRealAmount < 0) {
+            throw new ServiceException(ErrorCode.INVALID_POINT_AMOUNT);
+        }
+    }
+
     public void completeOrder() {
         this.status = OrderStatus.COMPLETED; // 결제 성공 시 호출 [cite: 673]
     }
 
     public void cancelOrder() {
+        // 이미 결제가 완료되었거나, 이미 취소된 상태라면 예외 발생
+        if (this.status == OrderStatus.COMPLETED) {
+            throw new ServiceException(ErrorCode.ORDER_CANNOT_BE_CANCELLED);
+        }
+
+        if (this.status == OrderStatus.CANCELLED) {
+            throw new ServiceException(ErrorCode.ORDER_ALREADY_BE_CANCELLED);
+        }
+
         this.status = OrderStatus.CANCELLED; // 결제 실패/전액 환불 시 호출 [cite: 673, 674]
     }
 }

@@ -1,5 +1,8 @@
 package com.team11.jojopay.domain.product.entity;
 
+import com.team11.jojopay.common.entity.BaseTimeEntity;
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import jakarta.persistence.*;
@@ -13,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Product {
+public class Product extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +28,7 @@ public class Product {
 
     // 판매가
     @Column(nullable = false)
-    private Integer price;
+    private Long price;
 
     // 재고 수량
     @Column(nullable = false)
@@ -62,5 +65,38 @@ public class Product {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 상품이 현재 주문 가능한 상태인지 스스로 검증합니다.
+     * @param quantity 주문 요청 수량
+     */
+    public void validateOrderable(Integer quantity) {
+        // 1. 판매 상태 검증
+         if (this.status != ProductStatus.ON_SALE) {
+             throw new ServiceException(ErrorCode.INVALID_PRODUCT_STATUS);
+        }
+
+        // 2. 재고 부족 검증
+        if (this.stockQuantity < quantity) {
+            throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
+        }
+    }
+
+    /**
+     * 상품 재고를 차감합니다. (주문 생성 시 호출)
+     * @param quantity 차감할 수량
+     */
+    public void decreaseStock(Integer quantity) {
+        validateOrderable(quantity); // 차감 전 판매 상태 및 재고를 다시 한번 확실하게 검증!
+        this.stockQuantity -= quantity;
+    }
+
+    /**
+     * 상품 재고를 복구합니다. (주문 취소 또는 결제 실패 시 호출)
+     * @param quantity 복구할 수량
+     */
+    public void increaseStock(Integer quantity) {
+        this.stockQuantity += quantity;
     }
 }
