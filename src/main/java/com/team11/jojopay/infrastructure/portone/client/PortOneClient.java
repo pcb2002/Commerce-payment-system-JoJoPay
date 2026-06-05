@@ -31,7 +31,7 @@ public class PortOneClient {
   @Value("${portone.secret-key}")
   private String secretKey;
 
-  @Value("{portone.api-url}")
+  @Value("${portone.api-url}")
   private String apiUrl;
 
   /**
