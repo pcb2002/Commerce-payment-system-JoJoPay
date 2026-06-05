@@ -92,7 +92,12 @@ public class Subscription extends BaseTimeEntity {
   /**
    * 다음 정기 결제일을 변경 스케줄러에서 정기 결제 성공 후 다음 결제일 갱신 시 사용
    */
-  public void updateNextBillingDate(LocalDate nextBillingDate) {
-    this.nextBillingDate = nextBillingDate;
+  public void updateNextBillingDate() {
+    // 정기 자동 결제 성공 시 차기 1달 이월
+    this.nextBillingDate = this.nextBillingDate.plusMonths(1);
+  }
+
+  public void markAsPastDue() {
+    this.status = SubscriptionStatus.PAST_DUE;
   }
 }

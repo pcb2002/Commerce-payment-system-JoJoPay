@@ -58,8 +58,9 @@ public class PaymentService {
       pointService.usePoint(member.getId(), payment.getUsedPoint(), payment);
     }
 
-    // 포인트 적립 로직 (실 결제 금액의 1%)
-    Long earnPoint = (long) (payment.getAmount() * 0.01);
+    // 등급별 포인트 차등 적립 정책 구현 (실 결제 금액의 1%)
+    double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
+    Long earnPoint = (long) (payment.getAmount() * earnRate);
     pointService.earnPoint(member, earnPoint, payment);
 
     // [멤버십]  누적 결제 금액 업데이트 및 등급 자동 갱신

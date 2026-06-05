@@ -87,7 +87,7 @@ public class PortOneClient {
    * 만약 스케줄러 네트워크 지연으로 인해 동일한 요청이 중복으로 두 번 날아가더라도,
    * 포트원 측에서 이 ID를 보고 중복 결제를 알아서 차단(멱등성 보장)해 주는 안전장치입니다.
    */
-  public PortOnePaymentResponse scheduleBillingKeyPayment(String billingKey, Long orderId, Long amount, String orderName) {
+  public PortOnePaymentResponse scheduleBillingKeyPayment(String billingKey, String orderId, Long amount, String orderName) {
     String url = apiUrl + "/payments-by-billing-key";
 
     HttpHeaders headers = createHeaders();
