@@ -46,7 +46,7 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
   
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "member_id", nullable = false)
-  private Member member;
+  private Member memberId;
 
   @Column(name = "subscription_id", nullable = true)
   private Long subscriptionId;      
@@ -82,10 +82,10 @@ public class Payment extends BaseTimeEntity { // created_at, updated_at 상속
    * 정적 팩토리 메서드
    * 생성 시점에 Order 객체를 직접 받습니다.
    */
-  public static Payment createPayment(Order order,Member member, String portonePaymentId, Long amount, Long usedPoint) {
+  public static Payment createPayment(Order order,Member memberId, String portonePaymentId, Long amount, Long usedPoint) {
     Payment payment = new Payment();
     payment.order = order; // 연관관계 매핑
-    payment.member = member;
+    payment.memberId = memberId;
     payment.portonePaymentId = portonePaymentId;
     payment.amount = amount;
     payment.usedPoint = usedPoint;
