@@ -15,7 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,13 +50,13 @@ public class Subscription extends BaseTimeEntity {
   private SubscriptionStatus status;
 
   @Column(name = "next_billing_date", nullable = false)
-  private LocalDateTime nextBillingDate;
+  private LocalDate nextBillingDate;
 
   private Subscription(
       Member member,
       Long billingKeyId,
       SubscriptionPlan plan,
-      LocalDateTime nextBillingDate) {
+      LocalDate nextBillingDate) {
     this.member = member;
     this.billingKeyId = billingKeyId;
     this.plan = plan;
@@ -72,7 +72,7 @@ public class Subscription extends BaseTimeEntity {
       Member member,
       Long billingKeyId,
       SubscriptionPlan plan,
-      LocalDateTime nextBillingDate
+      LocalDate nextBillingDate
   ) {
     return new Subscription(
         member,
@@ -92,7 +92,7 @@ public class Subscription extends BaseTimeEntity {
   /**
    * 다음 정기 결제일을 변경 스케줄러에서 정기 결제 성공 후 다음 결제일 갱신 시 사용
    */
-  public void updateNextBillingDate(LocalDateTime nextBillingDate) {
+  public void updateNextBillingDate(LocalDate nextBillingDate) {
     this.nextBillingDate = nextBillingDate;
   }
 }
