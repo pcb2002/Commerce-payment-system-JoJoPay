@@ -1,6 +1,8 @@
 package com.team11.jojopay.domain.product.service;
 
 
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.product.dto.request.ProductSearchRequest;
 import com.team11.jojopay.domain.product.dto.response.ProductDetailResponse;
 import com.team11.jojopay.domain.product.dto.response.ProductListResponse;
@@ -30,7 +32,7 @@ public class ProductService {
         // 1. DB에서 상품 조회하기
         Product findProduct = productRepository.findById(productId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("상품을 찾을 수 없습니다.")
+                        new ServiceException(ErrorCode.PRODUCT_NOT_FOUND)
                 );
 
         // 2. dto 변환 후 반환

@@ -1,6 +1,8 @@
 package com.team11.jojopay.domain.cart.service;
 
 
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.cart.dto.request.AddCartItemRequest;
 import com.team11.jojopay.domain.cart.dto.request.UpdateCartItemQuantityRequest;
 import com.team11.jojopay.domain.cart.dto.response.CartItemResponse;
@@ -51,7 +53,7 @@ public class CartService {
          */
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("회원을 찾을 수 없습니다.")
+                        new ServiceException(ErrorCode.MEMBER_NOT_FOUND)
                 );
 
         /**
@@ -71,7 +73,7 @@ public class CartService {
          */
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("상품을 찾을 수 없습니다.")
+                        new ServiceException(ErrorCode.PRODUCT_NOT_FOUND)
                 );
 
         /**
@@ -79,7 +81,7 @@ public class CartService {
          */
         if (product.getStatus() == ProductStatus.DISCONTINUED) {
 
-            throw new IllegalArgumentException("단종된 상품은 담을 수 없습니다.");
+            throw new ServiceException(ErrorCode.PRODUCT_DISCONTINUED);
         }
 
         /**
@@ -87,7 +89,7 @@ public class CartService {
          */
         if (request.getQuantity() > product.getStock()) {
 
-            throw new IllegalArgumentException("재고를 초과했습니다.");
+            throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
         }
 
         /**
@@ -113,7 +115,7 @@ public class CartService {
              */
             if (totalQuantity > product.getStock()) {
 
-                throw new IllegalArgumentException("재고를 초과했습니다.");
+                throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
             }
 
             cartItem.addQuantity(request.getQuantity());
@@ -147,7 +149,7 @@ public class CartService {
          */
         Cart cart = cartRepository.findByMemberId(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("장바구니가 존재하지 않습니다.")
+                        new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND)
                 );
         /**
          * 삭제되지 않은 장바구니 상품 조회
@@ -203,7 +205,7 @@ public class CartService {
          */
         Cart cart = cartRepository.findByMemberId(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("장바구니가 존재하지 않습니다.")
+                        new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND)
                 );
 
         /**
@@ -213,7 +215,7 @@ public class CartService {
         CartItem cartItem = cartItemRepository
                 .findByIdAndDeletedAtIsNull(cartItemId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("장바구니 상품이 존재하지 않습니다.")
+                        new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND)
                 );
 
         /**
@@ -221,7 +223,7 @@ public class CartService {
          */
         if (!cartItem.getCart().getId().equals(cart.getId())) {
 
-            throw new IllegalArgumentException("본인 장바구니만 수정 가능합니다.");
+            throw new ServiceException(ErrorCode.FORBIDDEN);
         }
 
         /**
@@ -230,7 +232,7 @@ public class CartService {
         if (request.getQuantity()
                 > cartItem.getProduct().getStock()) {
 
-            throw new IllegalArgumentException("재고를 초과했습니다.");
+            throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
         }
 
         /**
@@ -253,7 +255,7 @@ public class CartService {
          */
         Cart cart = cartRepository.findByMemberId(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("장바구니가 존재하지 않습니다.")
+                        new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND)
                 );
         /**
          * 장바구니 상품 조회
@@ -261,7 +263,7 @@ public class CartService {
         CartItem cartItem = cartItemRepository
                 .findByIdAndDeletedAtIsNull(cartItemId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("장바구니 상품이 존재하지 않습니다.")
+                        new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND)
                 );
 
         /**
@@ -269,7 +271,7 @@ public class CartService {
          */
         if (!cartItem.getCart().getId().equals(cart.getId())) {
 
-            throw new IllegalArgumentException("본인 장바구니만 삭제 가능합니다.");
+            throw new ServiceException(ErrorCode.FORBIDDEN);
         }
 
         /**
@@ -289,7 +291,7 @@ public class CartService {
          */
         Cart cart = cartRepository.findByMemberId(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("장바구니가 존재하지 않습니다.")
+                        new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND)
                 );
 
         /**
