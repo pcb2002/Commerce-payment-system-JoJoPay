@@ -93,13 +93,13 @@ class PaymentServiceTest {
     // then
     // 기존의 usePoint 대신 진짜 코드에 작성된 pointService.createHistory 방식 검증
     verify(pointService, times(1)).createHistory(
-        eq(mockMember), eq(mockPayment), eq(PointTransactionType.USE), eq(5000L)
+        eq(mockMember.getId()), eq(mockPayment), eq(PointTransactionType.USE), eq(5000L)
     );
 
     // 기존의 earnPoint 대신 진짜 코드에 작성된 pointService.createHistory 방식 검증
     long expectedEarnPoint = (long) (50000L * mockEarnRate); // 50,000 * 0.01 = 500원
     verify(pointService, times(1)).createHistory(
-        eq(mockMember), eq(mockPayment), eq(PointTransactionType.EARN), eq(expectedEarnPoint)
+        eq(mockMember.getId()), eq(mockPayment), eq(PointTransactionType.EARN), eq(expectedEarnPoint)
     );
 
     // 실결제 금액(45,000원) 기준으로 멤버십 누적 결제액이 올라갔는지 검증

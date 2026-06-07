@@ -124,7 +124,7 @@ public class SubscriptionService {
       double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
       Long earnPoint = (long) (subscription.getPrice() * earnRate);
       // 메서드 추가 요청
-      pointService.createHistory(member, null, PointTransactionType.EARN, earnPoint);
+      pointService.createHistory(member.getId(), null, PointTransactionType.EARN, earnPoint);
 
       // 누적 금액 업데이트 및 등급 재계산
       member.increaseTotalPaymentAmount(subscription.getPrice());

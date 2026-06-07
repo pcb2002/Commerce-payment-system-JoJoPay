@@ -75,12 +75,12 @@ public class RefundDbProcessor {
         RefundCalculator calculator = new RefundCalculator(totalRefundAmount, payment.getAmount(), payment.getUsedPoint(), payment.getPgRealAmount(), member.getMembershipGrade().getRewardRate(), currentPointBalance);
 
         if (calculator.getFinalPointRestoreAmount() > 0) {
-            pointService.createHistory(member, payment, PointTransactionType.USE_RECOVERY, calculator.getFinalPointRestoreAmount());
+            pointService.createHistory(member.getId(), payment, PointTransactionType.USE_RECOVERY, calculator.getFinalPointRestoreAmount());
         }
 
         long actualPointToDeduct = Math.min(currentPointBalance, calculator.getPointToRecoverFromEarn());
         if (actualPointToDeduct > 0) {
-            pointService.createHistory(member, payment, PointTransactionType.EARN_FORFEIT, actualPointToDeduct);
+            pointService.createHistory(member.getId(), payment, PointTransactionType.EARN_FORFEIT, actualPointToDeduct);
         }
 
         Refund refund = Refund.createRefund(payment, request.getReason(), calculator.getTotalRefundAmount(), calculator.getFinalPointRestoreAmount(), calculator.getFinalPgCancelAmount());
