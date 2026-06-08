@@ -71,7 +71,7 @@ public class CartItem extends BaseTimeEntity {
     }
 
     public Integer getQuantity() {
-        return this.product.getStock();
+        return this.quantity;
     }
 
     // 수량 증가 - 동일 상품 다시 담을 시 사용
