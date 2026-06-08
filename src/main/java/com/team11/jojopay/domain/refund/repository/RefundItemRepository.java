@@ -3,6 +3,7 @@ package com.team11.jojopay.domain.refund.repository;
 import com.team11.jojopay.domain.refund.entity.RefundItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -18,6 +19,6 @@ public interface RefundItemRepository extends JpaRepository<RefundItem, Long> {
      * @param id 검증하고자 하는 원본 주문 상품 상세 내역의 고유 식별자 PK (orderItemId)
      * @return 해당 주문 상품에서 이미 환불 처리가 완료되어 소멸된 수량의 총 합산값
      */
-    @Query("select coalesce(sum(ri.quantity), 0) from RefundItem ri where ri.orderItemId = :orderItemId")
-    int sumQuantityByOrderItemId(Long id);
+    @Query("SELECT COALESCE(SUM(ri.quantity), 0) FROM RefundItem ri WHERE ri.orderItemId = :orderItemId")
+    int sumQuantityByOrderItemId(@Param("orderItemId") Long id);
 }
