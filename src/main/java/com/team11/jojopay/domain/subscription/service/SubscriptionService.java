@@ -23,10 +23,12 @@ import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.team11.jojopay.domain.point.enums.PointTransactionType;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
@@ -117,7 +119,7 @@ public class SubscriptionService {
 
     // 결제 성공 후 포인트 적립 및 누적 결제 금액 반영
     // 메서드 내부에서 멤버십 등급도 함께 계산
-    pointService.createHistory(member, null, PointTransactionType.EARN, earnPoint);
+    pointService.createHistory(member.getId(), null, PointTransactionType.EARN, earnPoint);
     member.increaseTotalPaymentAmount(savedSubscription.getPrice());
 
     return SubscriptionResponse.from(savedSubscription);
@@ -179,7 +181,11 @@ public class SubscriptionService {
       subscription.updateNextBillingDate();
 
     } catch (Exception e) {
-      // 정기 결제 실패 시 청구서에 실패 기록 후 상태 유지
+      // 실패한 구독의 메타 정보(구독 ID, 회원 ID)와 구체적인 예외를 로그에 남김
+      log.error("[구독 갱신 실패] 구독 ID: {}, 회원 ID: {}, 에러 메시지: {}",
+          subscription.getId(), member.getId(), e.getMessage(),e);
+
+      // 정기 결제 실패 시 청구서에 실패 기록 후 미납 상태로 변경
       subscription.markAsPastDue();
     }
   }
