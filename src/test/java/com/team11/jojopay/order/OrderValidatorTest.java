@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +50,7 @@ class OrderValidatorTest {
     void validateAndGetCartItems_Success() {
         // given
         Long memberId = 1L;
-        List<Long> cartItemIds = List.of(1L, 2L);
+        List<Long> cartItemIds = new ArrayList<>(List.of(1L, 2L));
         List<CartItem> expectedItems = List.of(mock(CartItem.class), mock(CartItem.class));
 
         given(cartItemRepository.findAllByIdInAndMemberId(cartItemIds, memberId))
