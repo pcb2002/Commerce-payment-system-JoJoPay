@@ -1,7 +1,5 @@
 package com.team11.jojopay.domain.subscription.service;
 
-import static aQute.bnd.annotation.headers.Category.payment;
-
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.member.entity.Member;
@@ -23,10 +21,11 @@ import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.team11.jojopay.domain.point.enums.PointTransactionType;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
@@ -117,7 +116,7 @@ public class SubscriptionService {
 
     // 결제 성공 후 포인트 적립 및 누적 결제 금액 반영
     // 메서드 내부에서 멤버십 등급도 함께 계산
-    pointService.createHistory(member, null, PointTransactionType.EARN, earnPoint);
+    pointService.createHistory(member.getId(), null, PointTransactionType.EARN, earnPoint);
     member.increaseTotalPaymentAmount(savedSubscription.getPrice());
 
     return SubscriptionResponse.from(savedSubscription);
@@ -151,11 +150,19 @@ public class SubscriptionService {
         .toList();
   }
 
+  /**
+   * 정기 결제 주기 갱신 엔진
+   * 스케줄러 단에서 Repository의 비관적 락 메서드를 거쳐 인입됩니다.
+   */
   @Transactional
   public void renewSubscription(Subscription subscription) {
     Member member = subscription.getMember();
 
     String paymentId = "SUB_RENEW_" + subscription.getId() + "_" + System.currentTimeMillis();
+
+    // 다음 결제 회차 및 이용 기간 자동 계산 구조 이식
+    int nextCycle = subscriptionBillingRepository.findAllBySubscriptionIdOrderByCreatedAtDesc(subscription.getId()).size() + 1;
+    String billingPeriod = subscription.getNextBillingDate() + " ~ " + subscription.getNextBillingDate().plusMonths(1).minusDays(1);
 
     try {
       // 포트원 빌링키 결제 API 호출
@@ -164,6 +171,12 @@ public class SubscriptionService {
           paymentId,
           subscription.getPrice(),
           subscription.getPlan().getPlanName());
+
+      // 정기 결제 완료 내부 영속성 원장 적재
+      SubscriptionBilling successBilling = SubscriptionBilling.createSuccess(
+          subscription, nextCycle, billingPeriod, subscription.getPrice(), paymentId
+      );
+      subscriptionBillingRepository.save(successBilling);
 
       // 포인트 적립 (결제 직전 누적 금액 기준 등급 적용)
       // 현재 등급의 적립률을 가져와서 적립
@@ -179,7 +192,17 @@ public class SubscriptionService {
       subscription.updateNextBillingDate();
 
     } catch (Exception e) {
-      // 정기 결제 실패 시 청구서에 실패 기록 후 상태 유지
+      // 실패한 구독의 메타 정보(구독 ID, 회원 ID)와 구체적인 예외를 로그에 남김
+      log.error("[구독 갱신 실패] 구독 ID: {}, 회원 ID: {}, 에러 메시지: {}",
+          subscription.getId(), member.getId(), e.getMessage(),e);
+
+      // 정기 결제 실패 영속성 원장 적재
+      SubscriptionBilling failedBilling = SubscriptionBilling.createFailed(
+          subscription, nextCycle, billingPeriod, subscription.getPrice()
+      );
+      subscriptionBillingRepository.save(failedBilling);
+
+      // 정기 결제 실패 시 청구서에 실패 기록 후 미납 상태로 변경
       subscription.markAsPastDue();
     }
   }
