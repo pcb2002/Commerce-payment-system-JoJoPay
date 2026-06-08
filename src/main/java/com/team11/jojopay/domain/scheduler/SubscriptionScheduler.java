@@ -20,10 +20,10 @@ public class SubscriptionScheduler {
   private final SubscriptionService subscriptionService;
 
   /**
-   * 매일 새벽 2시에 당일 정기 구독 결제 대상자를 추출하여 자동 갱신을 진행합니다.
+   * 매일 새벽 자정에 당일 정기 구독 결제 대상자를 추출하여 자동 갱신을 진행합니다.
    * 크론 표현식: 초 분 시 일 월 요일
    */
-  @Scheduled(cron = "0 0 2 * * *")
+  @Scheduled(cron = "0 0 0 * * *")
   public void runSubscriptionRenewal() {
     LocalDate today = LocalDate.now();
     log.info("[정기 구독 배치 시작] 기준일자: {}", today);
