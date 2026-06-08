@@ -66,7 +66,7 @@ public class PaymentService {
       pointService.createHistory(member.getId(), payment, PointTransactionType.USE, payment.getUsedPoint());
     }
 
-    // 등급별 포인트 차등 적립 정을책 구현 (적립 원장 통합 적용)
+    // 등급별 포인트 차등 적립 정책 구현 (적립 원장 통합 적용)
     double earnRate = member.getMembershipGrade().getRewardRate();
     Long earnPoint = (long) (payment.getAmount() * earnRate);
 
