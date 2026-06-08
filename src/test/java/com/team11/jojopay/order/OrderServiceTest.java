@@ -1,4 +1,4 @@
-package com.team11.jojopay.order.service;
+package com.team11.jojopay.order;
 
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
@@ -6,14 +6,18 @@ import com.team11.jojopay.domain.cartitem.entity.CartItem;
 import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
 import com.team11.jojopay.domain.order.dto.request.OrderCreateRequest;
 import com.team11.jojopay.domain.order.dto.request.OrderPreviewRequest;
+import com.team11.jojopay.domain.order.dto.response.OrderDetailResponse;
+import com.team11.jojopay.domain.order.dto.response.OrderListItemResponse;
 import com.team11.jojopay.domain.order.dto.response.OrderPreviewResponse;
 import com.team11.jojopay.domain.order.dto.response.OrderResponse;
 import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.order.entity.OrderItem;
+import com.team11.jojopay.domain.order.enums.OrderStatus;
 import com.team11.jojopay.domain.order.reopsitory.OrderRepository;
 import com.team11.jojopay.domain.order.service.OrderService;
 import com.team11.jojopay.domain.order.validator.OrderValidator;
 import com.team11.jojopay.domain.payment.entity.Payment;
+import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
 import com.team11.jojopay.domain.product.entity.Product;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +26,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
@@ -51,7 +60,10 @@ class OrderServiceTest {
     void preview_Success() {
         // given
         Long memberId = 1L;
-        OrderPreviewRequest request = new OrderPreviewRequest(List.of(1L));
+
+        // 기본 생성자로 빈 껍데기를 먼저 만든 후, 리플렉션을 통해 강제로 값을 주입합니다.
+        OrderPreviewRequest request = new OrderPreviewRequest();
+        ReflectionTestUtils.setField(request, "cartItemIds", List.of(1L));
 
         CartItem cartItem = mock(CartItem.class);
         given(cartItem.getProductId()).willReturn(100L);
@@ -74,11 +86,63 @@ class OrderServiceTest {
     }
 
     @Test
+    @DisplayName("[Service] 내 주문 내역 목록 조회 성공")
+    void getMyOrders_Success() {
+        // given
+        Long memberId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // 가짜 주문 데이터 생성
+        Order order = mock(Order.class);
+        given(order.getStatus()).willReturn(OrderStatus.PENDING_PAYMENT);
+        Page<Order> orderPage = new PageImpl<>(List.of(order), pageable, 1);
+
+        given(orderValidator.getOrdersByMemberId(memberId, pageable)).willReturn(orderPage);
+        // OrderListItemResponse.from() 내부 로직이 문제없도록 정적 메서드 mocking은 주의 필요
+        // 하지만 단위 테스트라면 보통 response 생성 로직을 검증합니다.
+
+        // when
+        Page<OrderListItemResponse> response = orderService.getMyOrders(memberId, pageable);
+
+        // then
+        assertThat(response.getContent()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("[Service] 특정 주문 상세 조회 성공")
+    void getOrderDetail_Success() {
+        // given
+        Long memberId = 1L;
+        String orderNumber = "ORD-1234";
+
+        Order order = mock(Order.class);
+        Payment payment = mock(Payment.class);
+
+        given(order.getStatus()).willReturn(OrderStatus.PENDING_PAYMENT); // 이미 하셨을 수 있음
+        given(payment.getStatus()).willReturn(PaymentStatus.READY);        // PaymentStatus를 명시!
+        given(payment.getAmount()).willReturn(15000L);                    // 혹시 amount도 호출한다면 추가
+
+        // Validator를 통해 데이터를 잘 가져온다고 가정(Stubbing)
+        given(orderValidator.validateAndGetOrder(orderNumber, memberId)).willReturn(order);
+        given(orderValidator.validateAndGetPayment(order)).willReturn(payment);
+
+        // when
+        OrderDetailResponse response = orderService.getOrderDetail(memberId, orderNumber);
+
+        // then
+        // OrderDetailResponse.of(order, payment) 가 호출되어 결과가 반환되는지 확인
+        assertThat(response).isNotNull();
+    }
+
+    @Test
     @DisplayName("[주문 생성] 유효한 요청 시 주문, 결제 레코드가 생성되고 장바구니가 비워진다.")
     void createOrder_Success() {
         // given
         Long memberId = 1L;
-        OrderCreateRequest request = new OrderCreateRequest(List.of(1L), 10000L); // 1만 원 포인트 사용
+
+        OrderCreateRequest request = new OrderCreateRequest(); // 기본 생성자로 생성
+        ReflectionTestUtils.setField(request, "cartItemIds", List.of(1L)); // 리플렉션으로 값 주입
+        ReflectionTestUtils.setField(request, "usedPoint", 10000L); // 1만 원 포인트 사용
 
         CartItem cartItem = mock(CartItem.class);
         given(cartItem.getProductId()).willReturn(100L);
@@ -112,7 +176,9 @@ class OrderServiceTest {
     void createOrder_Fail_InvalidPointAmount() {
         // given
         Long memberId = 1L;
-        OrderCreateRequest request = new OrderCreateRequest(List.of(1L), 150000L); // 15만 원 포인트 사용 시도
+        OrderCreateRequest request = new OrderCreateRequest();
+        ReflectionTestUtils.setField(request, "cartItemIds", List.of(1L));
+        ReflectionTestUtils.setField(request, "usedPoint", 150000L); // 15만 원 포인트 사용 시도
 
         CartItem cartItem = mock(CartItem.class);
         given(cartItem.getProductId()).willReturn(100L);
@@ -144,6 +210,7 @@ class OrderServiceTest {
 
         Order order = mock(Order.class);
         OrderItem orderItem = mock(OrderItem.class);
+        given(order.getStatus()).willReturn(OrderStatus.PENDING_PAYMENT);
         given(orderItem.getProductId()).willReturn(100L);
         given(orderItem.getQuantity()).willReturn(3);
         given(order.getOrderItems()).willReturn(List.of(orderItem));
