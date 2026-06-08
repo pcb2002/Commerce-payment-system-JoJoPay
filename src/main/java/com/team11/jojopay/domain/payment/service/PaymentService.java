@@ -63,7 +63,7 @@ public class PaymentService {
 
     // 포인트 복합 결제 처리 (사용 원장 통합 적용)
     if (payment.getUsedPoint() > 0) {
-    pointService.createHistory(member, payment, PointTransactionType.USE, payment.getUsedPoint());
+    pointService.createHistory(member.getId(), payment, PointTransactionType.USE, payment.getUsedPoint());
     }
 
     // 등급별 포인트 차등 적립 정책 구현 (적립 원장 통합 적용)
@@ -71,7 +71,7 @@ public class PaymentService {
     Long earnPoint = (long) (payment.getAmount() * earnRate);
 
     if (earnPoint > 0) {
-      pointService.createHistory(member, payment, PointTransactionType.EARN, earnPoint);
+      pointService.createHistory(member.getId(), payment, PointTransactionType.EARN, earnPoint);
     }
 
     // [멤버십]  누적 결제 금액 업데이트 및 등급 자동 갱신

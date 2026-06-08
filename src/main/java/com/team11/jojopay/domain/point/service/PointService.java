@@ -2,6 +2,7 @@ package com.team11.jojopay.domain.point.service;
 
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.service.MemberService;
+import com.team11.jojopay.domain.order.validator.OrderValidator;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.point.dto.response.PointBalanceResponse;
 import com.team11.jojopay.domain.point.dto.response.PointHistoryResponse;
@@ -21,6 +22,7 @@ public class PointService {
 
     private final MemberService memberService;
     private final PointRepository pointRepository;
+    private final OrderValidator orderValidator;
 
     /**
      * 본인의 현재 포인트 잔액을 조회합니다.
@@ -54,7 +56,7 @@ public class PointService {
      */
     @Transactional
     public PointBalanceResponse chargeMockPoint(Long memberId, Long amount) {
-        Member member = memberService.findMemberById(memberId);
+        Member member = orderValidator.validateAndGetMemberWithLock(memberId);
 
         // 1. 회원 엔티티 잔액 증가
         member.addPoint(amount);
@@ -71,13 +73,15 @@ public class PointService {
      * 트랜잭션 타입 분기에 따라 회원(Member) 엔티티의 잔액 가감산 비즈니스 메서드를 호출하며,
      * 엔티티 내부 차감 정책에 따라 원장(PointHistory) 테이블에 부호가 정제되어 최종 저장됩니다.
      *
-     * @param member  포인트 변동이 발생하는 대상 회원 엔티티
-     * @param payment 포인트 변동의 원인이 된 원본 결제 마스터 엔티티 (더미 충전 시 null 허용)
-     * @param type    포인트 거래 유형 (EARN: 적립, USE: 사용, USE_RECOVERY: 사용분 복구, EARN_FORFEIT: 적립분 몰수)
-     * @param amount  이번 이력에서 증감시킬 절대값 금액 (음수 기호 없이 양수로 전달)
+     * @param memberId  포인트 변동이 발생하는 대상 회원 고유 식별자 ID
+     * @param payment   포인트 변동의 원인이 된 원본 결제 마스터 엔티티 (더미 충전 시 null 허용)
+     * @param type      포인트 거래 유형 (EARN: 적립, USE: 사용, USE_RECOVERY: 사용분 복구, EARN_FORFEIT: 적립분 몰수)
+     * @param amount    이번 이력에서 증감시킬 절대값 금액 (음수 기호 없이 양수로 전달)
      */
     @Transactional
-    public void createHistory(Member member, Payment payment, PointTransactionType type, Long amount) {
+    public void createHistory(Long memberId, Payment payment, PointTransactionType type, Long amount) {
+
+        Member member = orderValidator.validateAndGetMemberWithLock(memberId);
 
         // 1. 회원의 실제 잔액 가감산 처리 (타입별 분기)
         // 복구(USE_RECOVERY) 및 적립(EARN)은 플러스 처리, 사용(USE) 및 몰수(EARN_FORFEIT)는 마이너스 처리 수행
