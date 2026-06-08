@@ -4,6 +4,8 @@ import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.cartitem.entity.CartItem;
 import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
+import com.team11.jojopay.domain.member.entity.Member;
+import com.team11.jojopay.domain.member.repository.MemberRepository;
 import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.order.entity.OrderItem;
 import com.team11.jojopay.domain.order.reopsitory.OrderItemRepository;
@@ -29,6 +31,7 @@ public class OrderValidator {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final OrderItemRepository orderItemRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * 장바구니 아이템 유효성 및 본인 소유 검증
@@ -113,5 +116,9 @@ public class OrderValidator {
         }
 
         return orderItems;
+    }
+
+    public Member validateAndGetMemberWithLock(Long memberId) {
+        return memberRepository.findByIdWithLock(memberId).orElseThrow(() -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

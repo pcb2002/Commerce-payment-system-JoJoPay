@@ -32,6 +32,7 @@ public enum ErrorCode {
     // 401 UNAUTHORIZED: 인증 자격 증명 실패 및 JWT 예외 처리
     // =========================================================================
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 올바르지 않습니다."),
     TOKEN_REQUIRED(HttpStatus.UNAUTHORIZED, "TOKEN_REQUIRED", "인증 토큰이 필요합니다."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED", "인증 토큰이 만료되었습니다."),
     INVALID_TOKEN_SIGNATURE(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN_SIGNATURE", "토큰 서명이 유효하지 않습니다."),
@@ -51,7 +52,6 @@ public enum ErrorCode {
     // =========================================================================
     // 404 NOT_FOUND: 리소스 존재하지 않음
     // =========================================================================
-    INVALID_CREDENTIALS(HttpStatus.NOT_FOUND, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 올바르지 않습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원이 존재하지 않습니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품이 존재하지 않습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문 내역이 존재하지 않습니다."),
@@ -61,6 +61,7 @@ public enum ErrorCode {
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND", "장바구니 항목을 찾을 수 없습니다."),
     SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPTION_NOT_FOUND", "구독 정보를 찾을 수 없습니다."),
     BILLING_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "BILLING_KEY_NOT_FOUND", "빌링키를 찾을 수 없습니다."),
+    REFUND_NOT_FOUND(HttpStatus.NOT_FOUND, "REFUND_NOT_FOUND", "환불 내역을 찾을 수 없습니다."),
 
 
     // =========================================================================
