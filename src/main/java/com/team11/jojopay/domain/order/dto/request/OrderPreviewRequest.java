@@ -19,4 +19,9 @@ public class OrderPreviewRequest {
      */
     @NotNull(message = "장바구니 아이템 ID 목록은 필수입니다.")
     private List<Long> cartItemIds;
+
+    // 1개짜리 인수 에러 해결을 위해 생성자 직접 작성
+    public OrderPreviewRequest(List<Long> cartItemIds) {
+        this.cartItemIds = cartItemIds;
+    }
 }

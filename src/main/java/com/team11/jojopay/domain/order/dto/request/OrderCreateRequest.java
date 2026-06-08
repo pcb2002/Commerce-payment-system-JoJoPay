@@ -13,4 +13,10 @@ public class OrderCreateRequest {
 
     @Min(value = 0, message = "사용 포인트는 0 이상이어야 합니다.")
     private Long usedPoint; // Wrapper 클래스 사용
+
+    // 2개짜리 인수 에러 해결을 위해 생성자 직접 작성
+    public OrderCreateRequest(List<Long> cartItemIds, Long usedPoint) {
+        this.cartItemIds = cartItemIds;
+        this.usedPoint = usedPoint;
+    }
 }
