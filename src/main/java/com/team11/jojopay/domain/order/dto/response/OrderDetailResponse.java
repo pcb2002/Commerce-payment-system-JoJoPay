@@ -53,6 +53,7 @@ public class OrderDetailResponse {
         private String productName;      // 주문 당시의 상품명 (스냅샷)
         private Long priceAtOrder;    // 주문 당시의 판매가 (스냅샷)
         private Integer quantity;
+        private String status;
 
         public static OrderItemSnapshotResponse from(OrderItem item) {
             return OrderItemSnapshotResponse.builder()
@@ -60,6 +61,7 @@ public class OrderDetailResponse {
                     .productName(item.getProductName())
                     .priceAtOrder(item.getPriceAtOrder())
                     .quantity(item.getQuantity())
+                    .status(item.getStatus().name())
                     .build();
         }
     }
