@@ -1,4 +1,4 @@
-package com.team11.jojopay.product.service;
+package com.team11.jojopay.domain.product.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;

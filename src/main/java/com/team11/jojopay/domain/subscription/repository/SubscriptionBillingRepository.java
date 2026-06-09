@@ -9,5 +9,5 @@ public interface SubscriptionBillingRepository extends JpaRepository<Subscriptio
 
   List<SubscriptionBilling> findAllBySubscriptionIdOrderByCreatedAtDesc(Long subscriptionId);
 
-  long countBySubscriptionIdAndStatus(Long subscriptionId, SubscriptionBillingStatus status);
+  long countBySubscriptionIdAndBillingStatus(Long subscriptionId, SubscriptionBillingStatus billingStatus);
 }
