@@ -3,6 +3,7 @@ package com.team11.jojopay.domain.order.entity;
 import com.team11.jojopay.common.entity.BaseTimeEntity;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
+import com.team11.jojopay.domain.order.enums.OrderItemStatus;
 import com.team11.jojopay.domain.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -36,7 +37,7 @@ public class Order extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status; // 주문 상태 (결제대기, 주문완료, 주문취소)
+    private OrderStatus status; // 주문 상태 (결제대기, 주문완료, 주문취소, 부분환불, 전체환불)
 
     @Column(nullable = false)
     private Long totalAmount; // 주문 총액
@@ -83,15 +84,40 @@ public class Order extends BaseTimeEntity {
     }
 
     public void cancelOrder() {
-        // 이미 결제가 완료되었거나, 이미 취소된 상태라면 예외 발생
-        if (this.status == OrderStatus.COMPLETED) {
+        // 1. 이미 결제가 완료되었거나 환불 프로세스를 탄 주문은 단순 '결제 취소'를 할 수 없음 (환불 전용 로직으로 가야 함)
+        if (this.status == OrderStatus.COMPLETED ||
+                this.status == OrderStatus.PARTIAL_REFUND ||
+                this.status == OrderStatus.FULLY_REFUNDED) {
             throw new ServiceException(ErrorCode.ORDER_CANNOT_BE_CANCELLED);
         }
 
+        // 2. 이미 결제 취소 처리가 완료된 주문인 경우 방어
         if (this.status == OrderStatus.CANCELLED) {
             throw new ServiceException(ErrorCode.ORDER_ALREADY_BE_CANCELLED);
         }
 
-        this.status = OrderStatus.CANCELLED; // 결제 실패/전액 환불 시 호출 [cite: 673, 674]
+        // 3. 결제 대기(PENDING_PAYMENT) 상태에서 정상적으로 결제 취소(CANCELLED) 종결
+        this.status = OrderStatus.CANCELLED;
+    }
+
+    public void updateStatusByItems() {
+        if (this.orderItems == null || this.orderItems.isEmpty()) {
+            return;
+        }
+
+        // 모든 하위 상품이 REFUNDED 상태인지 확인
+        boolean allRefunded = this.orderItems.stream()
+                .allMatch(item -> item.getStatus() == OrderItemStatus.REFUNDED);
+
+        // 하나라도 REFUNDED 상태가 있는지 확인
+        boolean anyRefunded = this.orderItems.stream()
+                .anyMatch(item -> item.getStatus() == OrderItemStatus.REFUNDED);
+
+        // 하위 상품들의 환불 상태를 기반으로 주문 원장 상태 스위칭
+        if (allRefunded) {
+            this.status = OrderStatus.FULLY_REFUNDED; // 전액 환불 확정
+        } else if (anyRefunded) {
+            this.status = OrderStatus.PARTIAL_REFUND; // 일부 환불 확정
+        }
     }
 }

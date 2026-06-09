@@ -2,6 +2,8 @@ package com.team11.jojopay.domain.refund.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
 import com.team11.jojopay.domain.order.entity.Order;
+import com.team11.jojopay.domain.payment.entity.Payment;
+import com.team11.jojopay.domain.refund.enums.RefundStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,8 +29,8 @@ public class Refund extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private Order order;
+    @JoinColumn(name = "payment_id", nullable = false)
+    private Payment payment;
 
     @Column(nullable = false)
     private String reason;              // 환불 처리에 대한 사유 내용
@@ -42,6 +44,10 @@ public class Refund extends BaseTimeEntity {
     @Column(name = "pg_refund_amount", nullable = false)
     private Long pgRefundAmount;        // 포트원(PortOne) API를 통해 카드/계좌 사로 실제 승인 취소 요청이 들어간 금액
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private RefundStatus status;
+
     /**
      * 환불 영수증에 종속된 세부 환불 상품 항목 리스트 (영속성 전이 및 고아 객체 제거 활성화)
      */
@@ -51,21 +57,29 @@ public class Refund extends BaseTimeEntity {
     /**
      * 환불 마스터 엔티티를 생성하는 안전한 팩토리 메서드입니다.
      *
-     * @param order       대상 주문 엔티티 객체
+     * @param payment     대상 결제 엔티티 객체
      * @param reason      환불 사유
      * @param totalRefund 원본 상품 가치 기준 환불 총액
      * @param pointRefund 최종 조율된 포인트 복구액
      * @param pgRefund    최종 조율된 외부 PG 실취소액
      * @return 속성 주입이 완료된 Refund 인스턴스
      */
-    public static Refund createRefund(Order order, String reason, long totalRefund, long pointRefund, long pgRefund) {
+    public static Refund createRefund(Payment payment, String reason, long totalRefund, long pointRefund, long pgRefund) {
         Refund refund = new Refund();
-        refund.order = order;
+        refund.payment = payment;
         refund.reason = reason;
         refund.totalRefundAmount = totalRefund;
         refund.pointRefundAmount = pointRefund;
         refund.pgRefundAmount = pgRefund;
+        refund.status = RefundStatus.READY;
         return refund;
+    }
+
+    /**
+     * 외부 PG 취소 결과에 따라 상태를 사후 확정합니다.
+     */
+    public void updateStatus(RefundStatus status) {
+        this.status = status;
     }
 
     /**

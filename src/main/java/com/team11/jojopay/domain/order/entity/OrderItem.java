@@ -1,6 +1,7 @@
 package com.team11.jojopay.domain.order.entity;
 
 import com.team11.jojopay.common.entity.BaseTimeEntity;
+import com.team11.jojopay.domain.order.enums.OrderItemStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,6 +34,10 @@ public class OrderItem extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer quantity; // 수량
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private OrderItemStatus status;
+
     // 연관관계 편의 메서드용 Setter (접근 제어자 default 처리)
     void setOrder(Order order) {
         this.order = order;
@@ -45,6 +50,11 @@ public class OrderItem extends BaseTimeEntity {
         orderItem.productName = productName;
         orderItem.priceAtOrder = priceAtOrder;
         orderItem.quantity = quantity;
+        orderItem.status = OrderItemStatus.COMPLETED;
         return orderItem;
+    }
+
+    public void refund() {
+        this.status = OrderItemStatus.REFUNDED;
     }
 }
