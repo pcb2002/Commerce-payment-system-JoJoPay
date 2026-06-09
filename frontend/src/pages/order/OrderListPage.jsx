@@ -5,8 +5,9 @@ import { getMyOrders } from '../../api/orderApi';
 const STATUS_LABEL = {
     PENDING_PAYMENT: { label: '결제 대기', cls: 'text-bg-warning' },
     COMPLETED:       { label: '결제 완료', cls: 'text-bg-success' },
-    CANCELLED:       { label: '취소됨',   cls: 'text-bg-secondary' },
-    FAILED:          { label: '결제 실패', cls: 'text-bg-danger' },
+    CANCELLED:       { label: '취소됨',    cls: 'text-bg-secondary' },
+    PARTIAL_REFUND:  { label: '부분 환불', cls: 'text-bg-info' },
+    FULLY_REFUNDED:  { label: '전체 환불', cls: 'text-bg-secondary' },
 };
 
 export default function OrderListPage() {

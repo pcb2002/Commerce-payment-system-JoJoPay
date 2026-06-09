@@ -6,15 +6,16 @@ import { confirmPayment } from '../../api/paymentApi';
 const STATUS_LABEL = {
     PENDING_PAYMENT: { label: '결제 대기', cls: 'text-bg-warning' },
     COMPLETED:       { label: '결제 완료', cls: 'text-bg-success' },
-    CANCELLED:       { label: '취소됨',   cls: 'text-bg-secondary' },
-    FAILED:          { label: '결제 실패', cls: 'text-bg-danger' },
+    CANCELLED:       { label: '취소됨',    cls: 'text-bg-secondary' },
+    PARTIAL_REFUND:  { label: '부분 환불', cls: 'text-bg-info' },
+    FULLY_REFUNDED:  { label: '전체 환불', cls: 'text-bg-secondary' },
 };
 
 const PAYMENT_STATUS_LABEL = {
-    READY:  '결제 준비',
-    PAID:   '결제 완료',
-    FAILED: '결제 실패',
-    CANCELLED: '결제 취소',
+    READY:     '결제 준비',
+    COMPLETED: '결제 완료',
+    FAILED:    '결제 실패',
+    CANCELED:  '결제 취소',
 };
 
 export default function OrderDetailPage() {
@@ -221,19 +222,20 @@ export default function OrderDetailPage() {
                     </button>
                 </div>
             )}
-            {order.status === 'COMPLETED' && (
+            {(order.status === 'COMPLETED' || order.status === 'PARTIAL_REFUND') && (
                 <button
                     className="btn btn-outline-warning w-100 mt-2"
                     onClick={() => navigate(`/orders/${order.orderId}/refund`, {
                         state: {
-                            orderId: order.orderId,
                             orderNumber: order.orderNumber,
-                            items: order.orderItems.map((item) => ({
-                                orderItemId: item.orderItemId,
-                                productName: item.productName,
-                                quantity: item.quantity,
-                                price: item.priceAtOrder,
-                            }))
+                            items: order.orderItems
+                                .filter((item) => item.status !== 'REFUNDED')
+                                .map((item) => ({
+                                    orderItemId: item.orderItemId,
+                                    productName: item.productName,
+                                    quantity: item.quantity,
+                                    price: item.priceAtOrder,
+                                }))
                         }
                     })}
                 >
