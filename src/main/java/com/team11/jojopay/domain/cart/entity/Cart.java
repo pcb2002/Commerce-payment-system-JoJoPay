@@ -38,6 +38,4 @@ public class Cart extends BaseTimeEntity {
     public Cart(Member member) {
         this.member = member;
     }
-
-
 }
