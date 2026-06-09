@@ -1,7 +1,8 @@
-package com.team11.jojopay.domain.refund.controller;
+package com.team11.jojopay.domain.refund;
 
 import com.team11.jojopay.common.security.JwtAuthenticationFilter;
 import com.team11.jojopay.common.security.JwtProvider;
+import com.team11.jojopay.domain.refund.controller.RefundController;
 import com.team11.jojopay.domain.refund.dto.request.RefundRequest;
 import com.team11.jojopay.domain.refund.service.RefundService;
 import org.junit.jupiter.api.DisplayName;

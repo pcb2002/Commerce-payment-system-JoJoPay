@@ -1,9 +1,10 @@
-package com.team11.jojopay.domain.cart.service;
+package com.team11.jojopay.domain.cart;
 
 
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.cart.dto.request.AddCartItemRequest;
 import com.team11.jojopay.domain.cart.dto.request.UpdateCartItemQuantityRequest;
+import com.team11.jojopay.domain.cart.dto.response.CartResponse;
 import com.team11.jojopay.domain.cart.entity.Cart;
 import com.team11.jojopay.domain.cart.repository.CartRepository;
 import com.team11.jojopay.domain.cart.service.CartService;
@@ -22,8 +23,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -567,4 +572,114 @@ public class CartServiceTest {
         );
     }
 
+    @Test
+    @DisplayName("장바구니 조회 성공: 장바구니 품목 전체와 총액 계산 메서드가 정확히 호출된다.")
+    void getCart_Success() {
+        // given
+        Cart cart = mock(Cart.class);
+        CartItem cartItem = mock(CartItem.class);
+        Product product = mock(Product.class);
+
+        when(cart.getId()).thenReturn(10L);
+        when(product.getId()).thenReturn(5L);
+        when(product.getName()).thenReturn("에어팟");
+        when(product.getPrice()).thenReturn(200000L);
+        when(cartItem.getId()).thenReturn(100L);
+        when(cartItem.getProduct()).thenReturn(product);
+        when(cartItem.getQuantity()).thenReturn(2);
+
+        when(cartRepository.findByMemberId(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartIdAndDeletedAtIsNull(10L)).thenReturn(List.of(cartItem));
+
+        // when
+        CartResponse response = cartService.getCart(1L);
+
+        // then
+        assertNotNull(response);
+        assertEquals(10L, response.getCartId());
+        assertEquals(1, response.getCartItems().size());
+        assertEquals(400000, response.getTotalAmount()); // 200,000 * 2 = 400,000 원천 정합성 확인
+    }
+
+    @Test
+    @DisplayName("장바구니 조회 실패: 장바구니 자체가 존재하지 않으면 CART_ITEM_NOT_FOUND 예외가 발생한다.")
+    void getCart_Fail_NotFound() {
+        // given
+        when(cartRepository.findByMemberId(1L)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(ServiceException.class, () -> cartService.getCart(1L));
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 개별 삭제 성공: 본인 소유 장바구니임이 검증되면 softDelete 메서드가 트리거된다.")
+    void deleteCartItem_Success() {
+        // given
+        Cart cart = mock(Cart.class);
+        CartItem cartItem = mock(CartItem.class);
+
+        when(cart.getId()).thenReturn(5L);
+        when(cartItem.getCart()).thenReturn(cart);
+
+        when(cartRepository.findByMemberId(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByIdAndDeletedAtIsNull(100L)).thenReturn(Optional.of(cartItem));
+
+        // when
+        cartService.deleteCartItem(1L, 100L);
+
+        // then
+        verify(cartItem, times(1)).softDelete();
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 개별 삭제 실패: 삭제를 요청한 상품이 다른 사람의 장바구니 품목이라면 FORBIDDEN 예외가 발생한다.")
+    void deleteCartItem_Fail_Forbidden() {
+        // given
+        Cart myCart = mock(Cart.class);
+        Cart anotherCart = mock(Cart.class);
+        CartItem cartItem = mock(CartItem.class);
+
+        when(myCart.getId()).thenReturn(1L);
+        when(anotherCart.getId()).thenReturn(2L);
+        when(cartItem.getCart()).thenReturn(anotherCart); // 남의 카트 매핑
+
+        when(cartRepository.findByMemberId(1L)).thenReturn(Optional.of(myCart));
+        when(cartItemRepository.findByIdAndDeletedAtIsNull(100L)).thenReturn(Optional.of(cartItem));
+
+        // when & then
+        assertThrows(ServiceException.class, () -> cartService.deleteCartItem(1L, 100L));
+        verify(cartItem, never()).softDelete();
+    }
+
+    @Test
+    @DisplayName("장바구니 상품 개별 삭제 실패: 존재하지 않는 품목 번호 상신 시 CART_ITEM_NOT_FOUND 예외가 발생한다.")
+    void deleteCartItem_Fail_NotFound() {
+        // given
+        Cart cart = mock(Cart.class);
+        when(cartRepository.findByMemberId(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByIdAndDeletedAtIsNull(100L)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThrows(ServiceException.class, () -> cartService.deleteCartItem(1L, 100L));
+    }
+
+    @Test
+    @DisplayName("장바구니 전체 비우기 성공: 장바구니에 담긴 모든 CartItem이 순회하며 softDelete 처리된다.")
+    void clearCart_Success() {
+        // given
+        Cart cart = mock(Cart.class);
+        CartItem item1 = mock(CartItem.class);
+        CartItem item2 = mock(CartItem.class);
+        List<CartItem> itemList = new ArrayList<>(List.of(item1, item2));
+
+        when(cartRepository.findByMemberId(1L)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartAndDeletedAtIsNull(cart)).thenReturn(itemList);
+
+        // when
+        cartService.clearCart(1L);
+
+        // then
+        verify(item1, times(1)).softDelete();
+        verify(item2, times(1)).softDelete();
+    }
 }

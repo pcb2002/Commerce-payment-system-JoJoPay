@@ -1,4 +1,4 @@
-package com.team11.jojopay.domain.refund.service;
+package com.team11.jojopay.domain.refund;
 
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
@@ -6,6 +6,8 @@ import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.refund.dto.request.RefundRequest;
 import com.team11.jojopay.domain.refund.entity.Refund;
 import com.team11.jojopay.domain.refund.enums.RefundStatus;
+import com.team11.jojopay.domain.refund.service.RefundDbProcessor;
+import com.team11.jojopay.domain.refund.service.RefundService;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
