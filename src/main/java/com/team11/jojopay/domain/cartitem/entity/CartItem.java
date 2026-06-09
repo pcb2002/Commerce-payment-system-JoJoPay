@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-@Table(name = "cart_items", uniqueConstraints = {@UniqueConstraint(name = "uk_cart_product",
+@Table(name = "cart_item", uniqueConstraints = {@UniqueConstraint(name = "uk_cart_product",
 columnNames = {"cart_id", "product_id"})}
 /**
  * UNIQUE(cart_id, product_id) → 같은 장바구니에 동일 상품 중복으로 저장되는거 방지

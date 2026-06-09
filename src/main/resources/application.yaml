@@ -29,8 +29,9 @@ spring:
       path: /h2-console
   jpa:
     hibernate:
-      ddl-auto: create
-    defer-datasource-initialization: true
+      ddl-auto: create-drop
+    defer-datasource-initialization: true # Hibernate가 테이블을 다 만든 후에 data.sql을 실행하도록 지연시킴
+
     show-sql: true
     properties:
       hibernate:

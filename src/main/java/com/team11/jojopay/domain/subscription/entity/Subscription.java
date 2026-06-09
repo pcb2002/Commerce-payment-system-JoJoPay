@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "subscriptions")
+@Table(name = "subscription")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Subscription extends BaseTimeEntity {
 

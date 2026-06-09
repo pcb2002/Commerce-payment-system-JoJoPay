@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "carts")
+@Table(name = "cart")
 public class Cart extends BaseTimeEntity {
 
     // 장바구니 pk

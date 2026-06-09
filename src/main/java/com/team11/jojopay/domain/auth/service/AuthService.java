@@ -6,6 +6,8 @@ import com.team11.jojopay.common.security.JwtProvider;
 import com.team11.jojopay.domain.auth.dto.request.LoginRequest;
 import com.team11.jojopay.domain.auth.dto.request.SignupRequest;
 import com.team11.jojopay.domain.auth.dto.response.LoginResponse;
+import com.team11.jojopay.domain.cart.entity.Cart;
+import com.team11.jojopay.domain.cart.repository.CartRepository;
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class AuthService {
   private final MemberRepository memberRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtProvider jwtProvider;
+  private final CartRepository cartRepository;
 
   /**
    * 회원가입 처리
@@ -40,7 +43,11 @@ public class AuthService {
         request.getPhoneNumber()
     );
 
-    memberRepository.save(member);
+    Member savedMember = memberRepository.save(member);
+
+    Cart cart = new Cart(savedMember);
+
+    cartRepository.save(cart);
   }
 
   /**
