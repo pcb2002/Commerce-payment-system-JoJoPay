@@ -221,6 +221,25 @@ export default function OrderDetailPage() {
                     </button>
                 </div>
             )}
+            {order.status === 'COMPLETED' && (
+                <button
+                    className="btn btn-outline-warning w-100 mt-2"
+                    onClick={() => navigate(`/orders/${order.orderId}/refund`, {
+                        state: {
+                            orderId: order.orderId,
+                            orderNumber: order.orderNumber,
+                            items: order.orderItems.map((item) => ({
+                                orderItemId: item.orderItemId,
+                                productName: item.productName,
+                                quantity: item.quantity,
+                                price: item.priceAtOrder,
+                            }))
+                        }
+                    })}
+                >
+                    환불 신청
+                </button>
+            )}
         </div>
     );
 }
