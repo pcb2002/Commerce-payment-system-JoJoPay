@@ -66,5 +66,4 @@ server:
   port: 8080
 
 jwt:
-  secret-key: ${jwt.secret-key}
   access-token-valid-time: 3600000
