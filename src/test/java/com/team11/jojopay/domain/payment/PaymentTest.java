@@ -1,10 +1,10 @@
-package com.team11.jojopay.domain.payment.entity;
+package com.team11.jojopay.domain.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
 
-import com.team11.jojopay.domain.order.entity.Order;
+import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
