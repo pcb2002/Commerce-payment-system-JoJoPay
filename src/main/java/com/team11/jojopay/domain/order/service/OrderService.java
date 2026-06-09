@@ -225,4 +225,43 @@ public class OrderService {
         // 6. 응답 DTO 조립 반환
         return OrderCancelResponse.from(order);
     }
+
+    // =========================================================================
+    // [웹훅 내부 연동 마스터 구간]: 외부 PG사 통지에 대응하는 최종 제어 장치
+    // =========================================================================
+
+    /**
+     * [웹훅 전용] 결제 완료 통지에 따라 주문 상태를 최종 확정/완료 처리합니다.
+     */
+    @Transactional
+    public void completeOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 주문 엔티티 내부에 선언된 최종 완료 상태 전이 메서드 호출
+        order.completeOrder();
+    }
+
+    /**
+     * [웹훅 전용] 결제 취소/실패 통지에 따라 주문을 취소하고, 차감되었던 상품 재고를 원상 복구(롤백)합니다.
+     */
+    @Transactional
+    public void cancelOrder(Long orderId) {
+        // 1. 주문 조회
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.ORDER_NOT_FOUND));
+
+        // 2. 주문 상태를 취소로 변경 (엔티티 자체 검증 로직 가동)
+        order.cancelOrder();
+
+        // 3. 데드락 방지: 기존 cancelOrder 정책을 계승하여 상품 ID 기준으로 오름차순 정렬
+        List<OrderItem> sortedOrderItems = new ArrayList<>(order.getOrderItems());
+        sortedOrderItems.sort(Comparator.comparing(OrderItem::getProductId));
+
+        // 4. 재고 안전 원상 복구 (정렬된 순서대로 비관적 락 획득 후 충전)
+        for (OrderItem orderItem : sortedOrderItems) {
+            Product product = orderValidator.validateAndGetProductWithLock(orderItem.getProductId());
+            product.increaseStock(orderItem.getQuantity()); // 엔티티 스스로 재고 증가 비즈니스 구동
+        }
+    }
 }
