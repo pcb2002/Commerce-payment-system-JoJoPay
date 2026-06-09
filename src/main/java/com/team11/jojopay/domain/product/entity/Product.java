@@ -5,12 +5,17 @@ import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Table(name = "products")
 @Getter
@@ -86,7 +91,7 @@ public class Product extends BaseTimeEntity {
     // 테스트용 정적 팩토리 추가
     public static Product create(
             String name,
-            Integer price,
+            Long price,
             Integer stock,
             String description,
             ProductStatus status,
