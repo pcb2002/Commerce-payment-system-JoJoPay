@@ -4,6 +4,8 @@ import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.cartitem.entity.CartItem;
 import com.team11.jojopay.domain.cartitem.repository.CartItemRepository;
+import com.team11.jojopay.domain.member.entity.Member;
+import com.team11.jojopay.domain.member.repository.MemberRepository;
 import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.order.entity.OrderItem;
 import com.team11.jojopay.domain.order.reopsitory.OrderItemRepository;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -29,19 +32,28 @@ public class OrderValidator {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final OrderItemRepository orderItemRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * 장바구니 아이템 유효성 및 본인 소유 검증
      */
     public List<CartItem> validateAndGetCartItems(List<Long> cartItemIds, Long memberId) {
-        List<CartItem> cartItems = cartItemRepository.findAllByIdInAndMemberId(cartItemIds, memberId);
+        // 1. ID 정렬 (데드락 방지)
+        List<Long> sortedIds = new ArrayList<>(cartItemIds);
+        sortedIds.sort(Long::compareTo);
+
+        // 2. 데이터 조회
+        List<CartItem> cartItems = cartItemRepository.findAllByIdInAndMemberId(sortedIds, memberId);
+
         if (cartItems.isEmpty()) {
             throw new ServiceException(ErrorCode.CART_ITEM_NOT_FOUND);
         }
-        // 데드락 방지: 상품 ID 기준으로 오름차순 정렬 후 락 획득
-        cartItems.sort(Comparator.comparing(CartItem::getProductId));
 
-        return cartItems;
+        // 3. 조회된 결과를 가변 리스트로 복사 후 정렬 (에러 해결!)
+        List<CartItem> mutableCartItems = new ArrayList<>(cartItems);
+        mutableCartItems.sort(Comparator.comparing(CartItem::getProductId));
+
+        return mutableCartItems;
     }
 
     /**
@@ -113,5 +125,9 @@ public class OrderValidator {
         }
 
         return orderItems;
+    }
+
+    public Member validateAndGetMemberWithLock(Long memberId) {
+        return memberRepository.findByIdWithLock(memberId).orElseThrow(() -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

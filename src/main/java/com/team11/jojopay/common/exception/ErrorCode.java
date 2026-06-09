@@ -32,6 +32,7 @@ public enum ErrorCode {
     // 401 UNAUTHORIZED: 인증 자격 증명 실패 및 JWT 예외 처리
     // =========================================================================
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 올바르지 않습니다."),
     TOKEN_REQUIRED(HttpStatus.UNAUTHORIZED, "TOKEN_REQUIRED", "인증 토큰이 필요합니다."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "TOKEN_EXPIRED", "인증 토큰이 만료되었습니다."),
     INVALID_TOKEN_SIGNATURE(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN_SIGNATURE", "토큰 서명이 유효하지 않습니다."),
@@ -45,22 +46,22 @@ public enum ErrorCode {
     FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다."),
     MEMBER_SUSPENDED(HttpStatus.FORBIDDEN, "MEMBER_SUSPENDED", "활동이 정지된 회원 계정입니다."),
     INVALID_PASSWORD(HttpStatus.FORBIDDEN, "INVALID_PASSWORD", "현재 비밀번호가 올바르지 않습니다."),
-    UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "UNAUTHORIZED_ACCESS", "해당 주문/환불에 접근할 권한이 없습니다."), // 💡 시큐리티 보안 체크용 추가
+    UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "UNAUTHORIZED_ACCESS", "해당 주문/환불에 접근할 권한이 없습니다."),
 
 
     // =========================================================================
     // 404 NOT_FOUND: 리소스 존재하지 않음
     // =========================================================================
-    INVALID_CREDENTIALS(HttpStatus.NOT_FOUND, "INVALID_CREDENTIALS", "이메일 또는 비밀번호가 올바르지 않습니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원이 존재하지 않습니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품이 존재하지 않습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_NOT_FOUND", "주문 내역이 존재하지 않습니다."),
-    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_ITEM_NOT_FOUND", "주문 상품 상세 항목을 찾을 수 없습니다."), // 💡 [추가 완료]
+    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER_ITEM_NOT_FOUND", "주문 상품 상세 항목을 찾을 수 없습니다."),
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_NOT_FOUND", "결제 내역을 찾을 수 없습니다."),
     WALLET_NOT_FOUND(HttpStatus.NOT_FOUND, "WALLET_NOT_FOUND", "회원의 페이머니 지갑을 찾을 수 없습니다."),
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND", "장바구니 항목을 찾을 수 없습니다."),
     SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPTION_NOT_FOUND", "구독 정보를 찾을 수 없습니다."),
     BILLING_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "BILLING_KEY_NOT_FOUND", "빌링키를 찾을 수 없습니다."),
+    REFUND_NOT_FOUND(HttpStatus.NOT_FOUND, "REFUND_NOT_FOUND", "환불 내역을 찾을 수 없습니다."),
 
 
     // =========================================================================
@@ -76,7 +77,8 @@ public enum ErrorCode {
     ALREADY_ACTIVE_SUBSCRIPTION(HttpStatus.CONFLICT, "ALREADY_ACTIVE_SUBSCRIPTION", "이미 활성 구독이 존재합니다."),
     NO_ACTIVE_SUBSCRIPTION(HttpStatus.CONFLICT, "NO_ACTIVE_SUBSCRIPTION", "해지할 활성 구독이 존재하지 않습니다."),
     BILLING_KEY_DUPLICATE(HttpStatus.CONFLICT, "BILLING_KEY_DUPLICATE", "이미 등록된 빌링키입니다."),
-    EXCEEDED_REFUND_QUANTITY(HttpStatus.CONFLICT, "EXCEEDED_REFUND_QUANTITY", "잔여 환불 가능 수량을 초과한 요청입니다."), // 💡 [추가 완료]
+    EXCEEDED_REFUND_QUANTITY(HttpStatus.CONFLICT, "EXCEEDED_REFUND_QUANTITY", "잔여 환불 가능 수량을 초과한 요청입니다."),
+    ALREADY_REFUNDED_ITEM(HttpStatus.CONFLICT, "ALREADY_REFUNDED_ITEM", "이미 환불 처리가 완료된 항목입니다."),
 
     // 조조페이머니 핵심 비즈니스 정합성 정책
     INSUFFICIENT_BALANCE(HttpStatus.CONFLICT, "INSUFFICIENT_BALANCE", "페이머니 잔액이 부족하여 결제할 수 없습니다."),

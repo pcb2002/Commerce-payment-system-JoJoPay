@@ -5,9 +5,11 @@ import static org.springframework.http.HttpStatus.OK;
 
 import com.team11.jojopay.common.response.CommonApiResponse;
 import com.team11.jojopay.domain.subscription.dto.request.SubscriptionStartRequest;
+import com.team11.jojopay.domain.subscription.dto.response.SubscriptionBillingResponse;
 import com.team11.jojopay.domain.subscription.dto.response.SubscriptionResponse;
 import com.team11.jojopay.domain.subscription.service.SubscriptionService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,5 +48,13 @@ public class SubscriptionController {
   ) {
     SubscriptionResponse response = subscriptionService.cancelSubscription(memberId);
     return CommonApiResponse.success(OK, "구독 해지 완료", response);
+  }
+
+  @GetMapping("/me/billings")
+  public CommonApiResponse<List<SubscriptionBillingResponse>> getMySubscriptionBillings(
+      @AuthenticationPrincipal Long memberId
+  ) {
+    List<SubscriptionBillingResponse> response = subscriptionService.getMySubscriptionBillings(memberId);
+    return CommonApiResponse.success(OK, "내 구독 결제 내역 조회 완료", response);
   }
 }

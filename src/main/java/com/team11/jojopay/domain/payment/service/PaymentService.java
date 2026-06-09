@@ -11,6 +11,7 @@ import com.team11.jojopay.domain.payment.dto.response.PortOnePaymentResponse;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
+import com.team11.jojopay.domain.point.enums.PointTransactionType;
 import com.team11.jojopay.domain.point.service.PointService;
 import com.team11.jojopay.domain.product.service.ProductService;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
@@ -60,15 +61,18 @@ public class PaymentService {
     Member member = memberRepository.findById(order.getMemberId())
                 .orElseThrow(() -> new ServiceException(ErrorCode.MEMBER_NOT_FOUND));
 
-    // 포인트 복합 결제 처리 (사용한 포인트가 있는 경우)
+    // 포인트 복합 결제 처리 (사용 원장 통합 적용)
     if (payment.getUsedPoint() > 0) {
-      pointService.usePoint(member.getId(), payment.getUsedPoint(), order.getOrderNumber());
+      pointService.createHistory(member.getId(), payment, PointTransactionType.USE, payment.getUsedPoint());
     }
 
-    // 등급별 포인트 차등 적립 정책 구현 (실 결제 금액의 1%)
+    // 등급별 포인트 차등 적립 정책 구현 (적립 원장 통합 적용)
     double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
-    Long earnPoint = (long) (payment.getPgRealAmount() * earnRate);
-    pointService.earnPoint(member, earnPoint, payment);
+    Long earnPoint = (long) (payment.getAmount() * earnRate);
+
+    if (earnPoint > 0) {
+      pointService.createHistory(member.getId(), payment, PointTransactionType.EARN, earnPoint);
+    }
 
     // [멤버십]  누적 결제 금액 업데이트 및 등급 자동 갱신
     member.increaseTotalPaymentAmount(payment.getPgRealAmount());
