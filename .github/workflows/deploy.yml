@@ -68,7 +68,7 @@ jobs:
 
       # 🚀 Step 7: [CD] 빌드된 JAR 파일을 실제 AWS EC2 서버로 전송하기
       - name: Copy JAR to EC2
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: success()
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -76,7 +76,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build/libs/*-SNAPSHOT.jar"
           target: "~/jojopay-backend"
-          #strip_components: 0
+          strip_components: 2
 
       # 🏃‍♂️ Step 8: [CD] EC2 서버에서 기존 프로세스를 끄고 새 JAR 파일 실행하기
       # SSM(Systems Manager) 활용
@@ -92,7 +92,4 @@ jobs:
           aws ssm send-command \
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --parameters commands=[
-              "fuser -k 8080/tcp || true", 
-              "cd ~/jojopay-backend && nohup java -jar *.jar --spring.profiles.active=prod > nohup.out 2>&1 &"
-            ]
+            --parameters "commands=[\"sudo -u ec2-user bash -c 'fuser -k 8080/tcp || true'\", \"sudo -u ec2-user bash -c 'cd /home/ec2-user/jojopay-backend && nohup java -jar *.jar --spring.profiles.active=prod > nohup.out 2>&1 &' \"]"
