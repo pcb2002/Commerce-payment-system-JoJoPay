@@ -1,4 +1,4 @@
-package com.team11.jojopay.cartitem;
+package com.team11.jojopay.domain.cartitem;
 
 
 import com.team11.jojopay.common.exception.ServiceException;
