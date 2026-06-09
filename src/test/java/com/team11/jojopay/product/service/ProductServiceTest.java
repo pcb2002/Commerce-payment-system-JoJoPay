@@ -1,13 +1,15 @@
 package com.team11.jojopay.product.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.product.entity.Product;
 import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ProductServiceTest {
 
@@ -18,7 +20,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.ON_SALE,
@@ -37,7 +39,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.DISCONTINUED,
@@ -57,7 +59,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.SOLD_OUT,
@@ -77,7 +79,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         3,
                         "설명",
                         ProductStatus.ON_SALE,
@@ -97,7 +99,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.ON_SALE,
@@ -119,7 +121,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.ON_SALE,
