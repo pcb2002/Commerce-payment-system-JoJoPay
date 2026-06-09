@@ -48,24 +48,6 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private Category category;
 
-    // 생성일시
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    // 수정일시
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     /**
      * 상품이 현재 주문 가능한 상태인지 스스로 검증합니다.
@@ -98,5 +80,28 @@ public class Product extends BaseTimeEntity {
      */
     public void increaseStock(Integer quantity) {
         this.stock += quantity;
+    }
+
+
+    // 테스트용 정적 팩토리 추가
+    public static Product create(
+            String name,
+            Integer price,
+            Integer stock,
+            String description,
+            ProductStatus status,
+            Category category
+    ) {
+
+        Product product = new Product();
+
+        product.name = name;
+        product.price = price;
+        product.stock = stock;
+        product.description = description;
+        product.status = status;
+        product.category = category;
+
+        return product;
     }
 }
