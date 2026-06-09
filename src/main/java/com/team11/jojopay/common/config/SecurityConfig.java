@@ -60,7 +60,7 @@ public class SecurityConfig {
 
                 // API 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/h2-console/**").permitAll() // 인증 제외 URL
+                        .requestMatchers("/health", "/api/v1/auth/signup", "/api/v1/auth/login", "/h2-console/**").permitAll() // 인증 제외 URL
                         .anyRequest().authenticated() // 결제, 주문 등 나머지는 전부 인증 필수
                 )
 
