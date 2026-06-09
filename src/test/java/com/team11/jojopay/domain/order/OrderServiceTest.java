@@ -1,4 +1,4 @@
-package com.team11.jojopay.order;
+package com.team11.jojopay.domain.order;
 
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;

@@ -1,4 +1,4 @@
-package com.team11.jojopay.product.service;
+package com.team11.jojopay.domain.product.service;
 
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.product.entity.Product;
@@ -18,7 +18,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.ON_SALE,
@@ -37,7 +37,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.DISCONTINUED,
@@ -57,7 +57,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.SOLD_OUT,
@@ -77,7 +77,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         3,
                         "설명",
                         ProductStatus.ON_SALE,
@@ -97,7 +97,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.ON_SALE,
@@ -119,7 +119,7 @@ public class ProductServiceTest {
         Product product =
                 Product.create(
                         "맥북",
-                        1000,
+                        1000L,
                         10,
                         "설명",
                         ProductStatus.ON_SALE,

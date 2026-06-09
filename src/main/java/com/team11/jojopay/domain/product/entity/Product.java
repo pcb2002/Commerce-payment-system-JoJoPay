@@ -10,8 +10,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Table(name = "products")
 @Getter
 @Entity
@@ -86,7 +84,7 @@ public class Product extends BaseTimeEntity {
     // 테스트용 정적 팩토리 추가
     public static Product create(
             String name,
-            Integer price,
+            Long price,
             Integer stock,
             String description,
             ProductStatus status,
