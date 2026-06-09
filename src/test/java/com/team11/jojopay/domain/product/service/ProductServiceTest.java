@@ -1,13 +1,15 @@
 package com.team11.jojopay.domain.product.service;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.product.entity.Product;
 import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ProductServiceTest {
 

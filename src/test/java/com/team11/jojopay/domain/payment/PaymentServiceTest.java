@@ -1,4 +1,4 @@
-package com.team11.jojopay.domain.payment.service;
+package com.team11.jojopay.domain.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,6 +25,7 @@ import com.team11.jojopay.domain.payment.dto.response.PortOnePaymentResponse.Amo
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.payment.enums.PaymentStatus;
 import com.team11.jojopay.domain.payment.repository.PaymentRepository;
+import com.team11.jojopay.domain.payment.service.PaymentService;
 import com.team11.jojopay.domain.point.enums.PointTransactionType;
 import com.team11.jojopay.domain.point.service.PointService;
 import com.team11.jojopay.domain.product.service.ProductService;
