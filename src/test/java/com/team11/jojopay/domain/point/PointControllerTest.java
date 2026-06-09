@@ -1,12 +1,22 @@
-package com.team11.jojopay.domain.point.controller;
+package com.team11.jojopay.domain.point;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.team11.jojopay.common.security.JwtAuthenticationFilter;
 import com.team11.jojopay.common.security.JwtProvider;
+import com.team11.jojopay.domain.point.controller.PointController;
 import com.team11.jojopay.domain.point.dto.response.PointBalanceResponse;
 import com.team11.jojopay.domain.point.dto.response.PointHistoryResponse;
 import com.team11.jojopay.domain.point.entity.PointHistory;
 import com.team11.jojopay.domain.point.enums.PointTransactionType;
 import com.team11.jojopay.domain.point.service.PointService;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,16 +27,6 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = PointController.class)
 @AutoConfigureMockMvc(addFilters = false)

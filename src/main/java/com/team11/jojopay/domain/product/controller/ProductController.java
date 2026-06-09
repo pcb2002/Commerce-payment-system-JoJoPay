@@ -35,7 +35,7 @@ public class ProductController {
 
 
     // 상품 단건 조회
-    @GetMapping("/api/v1/products/{productId}")
+    @GetMapping("/{productId}")
     public ProductDetailResponse getProduct(
             @PathVariable Long productId
     ) {
@@ -43,7 +43,5 @@ public class ProductController {
         // 서비스 호출
         return productService.getDetailProduct(productId);
     }
-
-
 
 }

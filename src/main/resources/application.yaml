@@ -6,7 +6,7 @@ spring:
       region:
         static: ap-northeast-2
   profiles:
-    active: local
+    active: prod
 
 portone:
   secret-key: "MP42bGdUPcTmnU98YXpWCEtLBP26DUqU1WATn20ipyW2HcL3BBwrx7V7nTFQJRPa3V3bbTVKFZjpWxLT"
@@ -30,36 +30,54 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-    # 테스트를 위한 세팅
-    defer-datasource-initialization: true # Hibernate가 테이블을 다 만든 후에 data.sql을 실행하도록 지연시킴
-
+    defer-datasource-initialization: true
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect # H2 방언 사용
-  # 테스트를 위한 세팅
+        dialect: org.hibernate.dialect.H2Dialect
   sql:
     init:
-      mode: always # 항상 data.sql 스크립트를 실행
+      mode: always
 
 jwt:
   secret-key: localEnvDummySecretKeyForJojoPayProjectTest12345!
   access-token-valid-time: 36000000
 
 ---
-
 spring:
   config:
     activate:
       on-profile: prod
     import: aws-parameterstore:/config/jojopay/
+
+  # [추가/수정된 데이터베이스 설정]
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # url, username, password는 aws-parameterstore를 통해 로드되도록 설정
+
   jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-  Jackson:
+    show-sql: false
+
+  # [초기화 스크립트 실행 방지]
+  sql:
+    init:
+      mode: never
+
+  # [H2 콘솔 끄기]
+  h2:
+    console:
+      enabled: false
+
+  jackson:
     time-zone: Asia/Seoul
 
+server:
+  address: 0.0.0.0
+  port: 8080
+
 jwt:
-  secret-key: ${jwt.secret-key}
   access-token-valid-time: 3600000
