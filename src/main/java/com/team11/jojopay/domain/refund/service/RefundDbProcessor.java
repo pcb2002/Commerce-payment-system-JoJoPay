@@ -6,6 +6,7 @@ import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.service.MemberService;
 import com.team11.jojopay.domain.order.entity.Order;
 import com.team11.jojopay.domain.order.entity.OrderItem;
+import com.team11.jojopay.domain.order.enums.OrderItemStatus;
 import com.team11.jojopay.domain.order.validator.OrderValidator;
 import com.team11.jojopay.domain.payment.entity.Payment;
 import com.team11.jojopay.domain.point.enums.PointTransactionType;
@@ -56,6 +57,10 @@ public class RefundDbProcessor {
         List<RefundItem> readyRefundItems = new ArrayList<>();
 
         for (OrderItem item : refundItems) {
+            // 이미 완전히 환불 처리 끝난 상품 품목이라면 요청을 원천 차단
+            if (item.getStatus() == OrderItemStatus.REFUNDED) {
+                throw new ServiceException(ErrorCode.ALREADY_REFUNDED_ITEM); // 예: 이미 환불된 상품입니다.
+            }
             int requestQty = requestQuantityMap.get(item.getId());
             int alreadyRefundedQty = refundItemRepository.sumQuantityByOrderItemId(item.getId());
 
@@ -97,7 +102,35 @@ public class RefundDbProcessor {
      */
     @Transactional
     public void updateRefundStatus(Long refundId, RefundStatus status) {
-        Refund refund = refundRepository.findById(refundId).orElseThrow(() -> new ServiceException(ErrorCode.REFUND_NOT_FOUND));
+        Refund refund = refundRepository.findById(refundId)
+                .orElseThrow(() -> new ServiceException(ErrorCode.REFUND_NOT_FOUND));
+
         refund.updateStatus(status);
+
+        // 🎯 [추가] 환불이 최종 성공(COMPLETED) 상태로 결정되었을 때만 주문 상태를 업데이트합니다.
+        if (status == RefundStatus.COMPLETED) {
+            Order order = refund.getPayment().getOrder();
+
+            // 이번 환불 영수증(Refund)에 포함된 환불 품목(RefundItem)들을 순회
+            refund.getRefundItems().forEach(refundItem -> {
+                // 1. 환불 품목 ID를 통해 원본 주문 상품(OrderItem)을 조회
+                OrderItem orderItem = orderValidator.validateAndGetOrderItems(
+                        List.of(refundItem.getOrderItemId()),
+                        order.getMemberId()
+                ).get(0);
+
+                // 2. [수량 조건 검증] 지금까지 누적 환불된 수량을 DB에서 긁어옴
+                // (트랜잭션 1에서 이미 현재 환불 건이 insert 되었으므로, sumQuantity에 이번 수량도 포함되어 있음)
+                int totalRefundedQty = refundItemRepository.sumQuantityByOrderItemId(orderItem.getId());
+
+                // 3. 만약 누적 환불 완료된 수량이 처음 구매했던 수량과 같거나 크다면, 이 품목은 완전히 취소(전멸)된 것임!
+                if (totalRefundedQty >= orderItem.getQuantity()) {
+                    orderItem.refund(); // OrderItemStatus를 REFUNDED로 변경!
+                }
+            });
+
+            // 4. 모든 하위 상품들의 상태 스캔이 끝났으므로, 상위 Order 원장 상태를 자동 갱신 (PARTIAL_REFUND 또는 FULLY_REFUNDED)
+            order.updateStatusByItems();
+        }
     }
 }
