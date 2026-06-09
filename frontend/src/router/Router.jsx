@@ -15,6 +15,7 @@ import SubscriptionPage from "../pages/subscription/SubscriptionPage.jsx";
 import PointPage from "../pages/point/PointPage.jsx";
 import MyProfilePage from "../pages/my/MyProfilePage.jsx";
 import MyRefundListPage from "../pages/my/MyRefundListPage.jsx";
+import MyPointPage from "../pages/my/MyPointPage.jsx";
 
 export default function Router() {
         return (
@@ -47,6 +48,7 @@ export default function Router() {
 
                     {/* Point */}
                     <Route path="/points" element={<PointPage />} />
+                    <Route path="/my/points" element={<MyPointPage />} />
 
                     {/* My */}
                     <Route path="/my/profile" element={<MyProfilePage />} />

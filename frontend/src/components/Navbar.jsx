@@ -30,6 +30,7 @@ export default function Navbar() {
         { label: '내 정보', path: '/my/profile', icon: 'bi-person' },
         { label: '내 장바구니', path: '/cart', icon: 'bi-cart3' },
         { label: '내 주문', path: '/orders', icon: 'bi-bag' },
+        { label: '내 포인트', path: '/my/points', icon: 'bi-coin' },
         { label: '내 환불', path: '/my/refunds', icon: 'bi-arrow-counterclockwise' },
     ];
 
