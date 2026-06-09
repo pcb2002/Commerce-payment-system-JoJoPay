@@ -24,15 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "payment", uniqueConstraints = {
         @UniqueConstraint(name = "uk_payment_order_id", columnNames = {"order_id"}),
