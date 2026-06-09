@@ -1,4 +1,4 @@
-package com.team11.jojopay.domain.product.service;
+package com.team11.jojopay.domain.product;
 
 
 import com.team11.jojopay.common.exception.ServiceException;
@@ -9,6 +9,7 @@ import com.team11.jojopay.domain.product.entity.Product;
 import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import com.team11.jojopay.domain.product.repository.ProductRepository;
+import com.team11.jojopay.domain.product.service.ProductService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,4 +1,4 @@
-package com.team11.jojopay.domain.refund.service;
+package com.team11.jojopay.domain.refund;
 
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.repository.MemberRepository;
@@ -15,6 +15,7 @@ import com.team11.jojopay.domain.product.enums.Category;
 import com.team11.jojopay.domain.product.enums.ProductStatus;
 import com.team11.jojopay.domain.product.repository.ProductRepository;
 import com.team11.jojopay.domain.refund.dto.request.RefundRequest;
+import com.team11.jojopay.domain.refund.service.RefundService;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
