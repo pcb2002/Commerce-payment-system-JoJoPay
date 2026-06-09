@@ -67,7 +67,7 @@ public class PaymentService {
     }
 
     // 등급별 포인트 차등 적립 정책 구현 (적립 원장 통합 적용)
-    double earnRate = member.getMembershipGrade().getRewardRate();
+    double earnRate = member.getMembershipGrade().getRewardRate() / 100.0;
     Long earnPoint = (long) (payment.getAmount() * earnRate);
 
     if (earnPoint > 0) {
