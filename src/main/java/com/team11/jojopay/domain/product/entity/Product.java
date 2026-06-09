@@ -28,7 +28,7 @@ public class Product extends BaseTimeEntity {
 
     // 판매가
     @Column(nullable = false)
-    private Integer price;
+    private Long price;
 
     // 재고 수량
     @Column(nullable = false)
@@ -86,7 +86,7 @@ public class Product extends BaseTimeEntity {
     // 테스트용 정적 팩토리 추가
     public static Product create(
             String name,
-            Integer price,
+            Long price,
             Integer stock,
             String description,
             ProductStatus status,
