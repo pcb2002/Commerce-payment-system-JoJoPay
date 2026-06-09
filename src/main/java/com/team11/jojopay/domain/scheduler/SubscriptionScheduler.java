@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -23,6 +24,7 @@ public class SubscriptionScheduler {
    * 매일 새벽 자정에 당일 정기 구독 결제 대상자를 추출하여 자동 갱신을 진행합니다.
    * 크론 표현식: 초 분 시 일 월 요일
    */
+  @Transactional
   @Scheduled(cron = "0 0 0 * * *")
   public void runSubscriptionRenewal() {
     LocalDate today = LocalDate.now();
