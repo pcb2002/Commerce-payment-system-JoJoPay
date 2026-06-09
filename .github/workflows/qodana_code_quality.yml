@@ -1,11 +1,17 @@
+#-------------------------------------------------------------------------------#
+#            Discover all capabilities of Qodana in our documentation           #
+#             https://www.jetbrains.com/help/qodana/about-qodana.html           #
+#-------------------------------------------------------------------------------#
+
 name: Qodana
 on:
   workflow_dispatch:
   pull_request:
   push:
-    branches: # Specify your branches here
-      - main # The 'main' branch
-      - 'releases/*' # The release branches
+    branches:
+      - main
+      - develop
+      - docs/docker
 
 jobs:
   qodana:
@@ -15,15 +21,22 @@ jobs:
       pull-requests: write
       checks: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
-          fetch-depth: 0  # a full history is required for pull request analysis
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2025.3
         with:
+          # 커뮤니티 이미지를 강제 지정하여 토큰 없이 실행되도록 설정
+          args: --linter,jetbrains/qodana-jvm-community:2025.3
+          # 기존 설정 유지
           pr-mode: false
-          args: --jdk, 17
+          use-caches: true
+          post-pr-comment: true
+          use-annotations: true
+          upload-result: false
+          push-fixes: 'none'
         env:
-          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
-          QODANA_ENDPOINT: 'https://qodana.cloud'
+          # 커뮤니티 버전은 QODANA_TOKEN이 필요 없으므로 삭제하거나 비워둡니다
+          QODANA_TOKEN: ""
