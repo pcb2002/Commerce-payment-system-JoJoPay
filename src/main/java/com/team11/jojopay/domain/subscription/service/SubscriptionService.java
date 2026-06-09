@@ -216,7 +216,7 @@ public class SubscriptionService {
     */
   private int calculateNextBillingCycle(Long subscriptionId) {
     return (int) subscriptionBillingRepository
-        .countBySubscriptionIdAndStatus(
+        .countBySubscriptionIdAndBillingStatus(
             subscriptionId,
             SubscriptionBillingStatus.SUCCESS
         ) + 1;
