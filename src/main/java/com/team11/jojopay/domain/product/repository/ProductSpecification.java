@@ -7,61 +7,27 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class ProductSpecification {
 
-    //동적 조건 검색
-
-    // 카테고리 조건 → 카테고리에 값이 존재하면  WHERE category = ?
-    // null → 없는 조건은 생략
-
     public static Specification<Product> hasCategory(Category category) {
-
         return (root, query, cb) ->
-
-                // category가 null이면 조건 추가 안함
-                category == null ? null
-
-                        // category가 있으면
-                        // category 컬럼과 값이 같은지 비교
+                category == null ? cb.conjunction() // null 대신 cb.conjunction()
                         : cb.equal(root.get("category"), category);
     }
 
-    //  판매상태 조건 → WHERE status = ?
-
     public static Specification<Product> hasStatus(ProductStatus status) {
-
         return (root, query, cb) ->
-
-                status == null ? null
+                status == null ? cb.conjunction() // null 대신 cb.conjunction()
                         : cb.equal(root.get("status"), status);
     }
 
-
-    //  최소가격 조건  → WHERE price >= ?
-
     public static Specification<Product> minPrice(Integer minPrice) {
-
         return (root, query, cb) ->
-
-                minPrice == null ? null
-
-                        : cb.greaterThanOrEqualTo(
-
-                        root.get("price"), minPrice);
-
+                minPrice == null ? cb.conjunction() // null 대신 cb.conjunction()
+                        : cb.greaterThanOrEqualTo(root.get("price"), minPrice);
     }
-
-    //  최대가격 조건 → WHERE price <= ?
 
     public static Specification<Product> maxPrice(Integer maxPrice) {
-
         return (root, query, cb) ->
-
-                maxPrice == null ? null
-
-                        : cb.lessThanOrEqualTo(
-                        root.get("price"), maxPrice);
+                maxPrice == null ? cb.conjunction() // null 대신 cb.conjunction()
+                        : cb.lessThanOrEqualTo(root.get("price"), maxPrice);
     }
-
 }
-
-
-

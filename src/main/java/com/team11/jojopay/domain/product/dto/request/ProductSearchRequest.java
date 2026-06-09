@@ -7,8 +7,10 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ProductSearchRequest {
 
@@ -18,11 +20,11 @@ public class ProductSearchRequest {
     private Category category;
 
     // 최소 가격
-    @Min(value = 0, message = "최소 가격은 0 이상이여야 합니다.")
+    @Min(value = 0, message = "최소 가격은 0원 이상이여야 합니다.")
     private Integer minPrice;
 
     // 최대 가격
-    @Max(value = 0, message = "최대 가격은 0 이상이여야 합니다.")
+    @Max(value = 1000000, message = "최대 가격은 1,000,000원 이상이여야 합니다.")
     private Integer maxPrice;
 
     // 판매 상태

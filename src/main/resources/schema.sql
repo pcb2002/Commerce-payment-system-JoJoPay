@@ -1,119 +1,178 @@
--- 1. 회원 (Member)
-CREATE TABLE member (
-                        member_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                        email VARCHAR(255) NOT NULL UNIQUE,
-                        name VARCHAR(100) NOT NULL,
-                        role VARCHAR(50) NOT NULL,
-                        point_balance INT DEFAULT 0,
-                        created_at DATETIME NOT NULL,
-                        updated_at DATETIME NOT NULL
-);
+-- MEMBER
+CREATE TABLE IF NOT EXISTS member (
+                                      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                      email VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    phone_number VARCHAR(20),
+    point_balance BIGINT DEFAULT 0,
+    total_payment_amount BIGINT DEFAULT 0,
+    membership_grade VARCHAR(20),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+    );
 
--- 2. 상품 (Product)
-CREATE TABLE product (
-                         product_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                         name VARCHAR(255) NOT NULL,
-                         price INT NOT NULL,
-                         stock INT NOT NULL,
-                         status VARCHAR(50) NOT NULL, -- ON_SALE, OUT_OF_STOCK 등
-                         created_at DATETIME NOT NULL,
-                         updated_at DATETIME NOT NULL
-);
+-- PRODUCT
+CREATE TABLE IF NOT EXISTS product (
+                                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                       name VARCHAR(255) NOT NULL,
+    price BIGINT NOT NULL,
+    stock INTEGER NOT NULL,
+    description VARCHAR(1000),
+    status VARCHAR(20) NOT NULL,
+    category VARCHAR(50),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL
+    );
 
--- 3. 장바구니 (Cart)
--- 회원 1명당 1개의 장바구니 (1:1 관계)
-CREATE TABLE cart (
-                      cart_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                      member_id BIGINT NOT NULL UNIQUE,
-                      created_at DATETIME NOT NULL,
-                      updated_at DATETIME NOT NULL,
-                      FOREIGN KEY (member_id) REFERENCES member(member_id)
-);
+-- CART
+CREATE TABLE IF NOT EXISTS cart (
+                                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                    member_id BIGINT NOT NULL UNIQUE,
+                                    created_at DATETIME NOT NULL,
+                                    updated_at DATETIME NOT NULL,
+                                    FOREIGN KEY (member_id) REFERENCES member(id)
+    );
 
--- 4. 장바구니 아이템 (Cart_Item)
-CREATE TABLE cart_item (
-                           cart_item_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                           cart_id BIGINT NOT NULL,
-                           product_id BIGINT NOT NULL,
-                           quantity INT NOT NULL,
-                           created_at DATETIME NOT NULL,
-                           updated_at DATETIME NOT NULL,
-                           FOREIGN KEY (cart_id) REFERENCES cart(cart_id),
-                           FOREIGN KEY (product_id) REFERENCES product(product_id),
-                           UNIQUE KEY uk_cart_product (cart_id, product_id) -- 동일 장바구니 내 동일 상품 중복 방지
-);
+-- CART_ITEM
+CREATE TABLE IF NOT EXISTS cart_item (
+                                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                         cart_id BIGINT NOT NULL,
+                                         product_id BIGINT NOT NULL,
+                                         quantity INTEGER NOT NULL,
+                                         deleted_at DATETIME,
+                                         created_at DATETIME NOT NULL,
+                                         updated_at DATETIME NOT NULL,
+                                         FOREIGN KEY (cart_id) REFERENCES cart(id),
+    FOREIGN KEY (product_id) REFERENCES product(id)
+    );
 
--- 5. 포인트 이력 (Point_History)
-CREATE TABLE point_history (
-                               point_history_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                               member_id BIGINT NOT NULL,
-                               amount INT NOT NULL,
-                               type VARCHAR(50) NOT NULL, -- EARN, USE, CANCEL 등
-                               description VARCHAR(255),
-                               created_at DATETIME NOT NULL,
-                               FOREIGN KEY (member_id) REFERENCES member(member_id)
-);
+-- BILLING_KEY
+CREATE TABLE IF NOT EXISTS billing_key (
+                                           id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                           member_id BIGINT NOT NULL,
+                                           customer_uid VARCHAR(255) NOT NULL,
+    card_name VARCHAR(50),
+    card_number VARCHAR(20),
+    status VARCHAR(20),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES member(id)
+    );
 
--- 6. 주문 (Orders)
--- 주문번호는 UUID 기반의 커스텀 문자열 사용 (ORD-XXXX...)
-CREATE TABLE orders (
-                        order_number VARCHAR(100) PRIMARY KEY,
-                        member_id BIGINT NOT NULL,
-                        status VARCHAR(50) NOT NULL, -- PENDING_PAYMENT, COMPLETED, CANCELLED 등
-                        total_amount INT NOT NULL,
-                        point_used INT DEFAULT 0,
-                        pg_amount INT NOT NULL,
-                        created_at DATETIME NOT NULL,
-                        updated_at DATETIME NOT NULL,
-                        FOREIGN KEY (member_id) REFERENCES member(member_id)
-);
+-- SUBSCRIPTION
+CREATE TABLE IF NOT EXISTS subscription (
+                                            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                            member_id BIGINT NOT NULL,
+                                            billing_key_id BIGINT NOT NULL,
+                                            plan_name VARCHAR(50) NOT NULL,
+    price BIGINT NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    next_billing_date DATE NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES member(id),
+    FOREIGN KEY (billing_key_id) REFERENCES billing_key(id)
+    );
 
--- 7. 주문 상품 (Order_Item) - 스냅샷 포함
-CREATE TABLE order_item (
-                            order_item_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                            order_number VARCHAR(100) NOT NULL,
-                            product_id BIGINT NOT NULL,
-                            product_name VARCHAR(255) NOT NULL, -- 결제 시점 상품명 스냅샷
-                            price_at_order INT NOT NULL,        -- 결제 시점 가격 스냅샷
-                            quantity INT NOT NULL,
-                            created_at DATETIME NOT NULL,
-                            FOREIGN KEY (order_number) REFERENCES orders(order_number)
-);
+-- SUBSCRIPTION_BILLING
+CREATE TABLE IF NOT EXISTS subscription_billing (
+                                                    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                                    subscription_id BIGINT NOT NULL,
+                                                    billing_cycle INTEGER,
+                                                    billing_period VARCHAR(50),
+    amount BIGINT NOT NULL,
+    billing_status VARCHAR(20),
+    portone_tier_payment_id VARCHAR(100),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (subscription_id) REFERENCES subscription(id)
+    );
 
--- 8. 결제 내역 (Payment)
-CREATE TABLE payment (
-                         payment_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                         order_number VARCHAR(100) NOT NULL UNIQUE,
-                         portone_payment_id VARCHAR(100) NOT NULL UNIQUE, -- 포트원 결제 고유번호
-                         status VARCHAR(50) NOT NULL, -- PAID, CANCELLED 등
-                         amount INT NOT NULL,
-                         method VARCHAR(50), -- CARD, POINT 등
-                         created_at DATETIME NOT NULL,
-                         FOREIGN KEY (order_number) REFERENCES orders(order_number)
-);
+-- ORDERS
+-- ORDERS
+CREATE TABLE IF NOT EXISTS orders (
+                                      id BIGINT AUTO_INCREMENT PRIMARY KEY, -- 이 부분이 있어야 합니다!
+                                      order_number VARCHAR(100) NOT NULL,
+    member_id BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    total_amount BIGINT NOT NULL,
+    used_point BIGINT DEFAULT 0,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES member(id)
+    );
 
--- 9. 빌링키 (Billing_Key) - 정기 구독용
-CREATE TABLE billing_key (
-                             billing_key_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                             member_id BIGINT NOT NULL,
-                             portone_billing_key VARCHAR(255) NOT NULL UNIQUE,
-                             card_company VARCHAR(100),
-                             is_active BOOLEAN DEFAULT TRUE,
-                             created_at DATETIME NOT NULL,
-                             updated_at DATETIME NOT NULL,
-                             FOREIGN KEY (member_id) REFERENCES member(member_id)
-);
+-- ORDER_ITEM
+CREATE TABLE IF NOT EXISTS order_item (
+                                          id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                          order_id BIGINT NOT NULL,
+                                          product_id BIGINT NOT NULL,
+                                          product_name VARCHAR(255) NOT NULL,
+    price_at_order BIGINT NOT NULL,
+    quantity INTEGER NOT NULL,
+    status VARCHAR(20),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES product(id)
+    );
 
--- 10. 정기 구독 (Subscription)
-CREATE TABLE subscription (
-                              subscription_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                              member_id BIGINT NOT NULL,
-                              billing_key_id BIGINT NOT NULL,
-                              plan_name VARCHAR(100) NOT NULL,
-                              status VARCHAR(50) NOT NULL, -- ACTIVE, PAUSED, CANCELED 등
-                              next_payment_date DATE NOT NULL,
-                              created_at DATETIME NOT NULL,
-                              updated_at DATETIME NOT NULL,
-                              FOREIGN KEY (member_id) REFERENCES member(member_id),
-                              FOREIGN KEY (billing_key_id) REFERENCES billing_key(billing_key_id)
-);
+-- PAYMENT
+CREATE TABLE IF NOT EXISTS payment (
+                                       id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                       order_id BIGINT NOT NULL,
+                                       member_id BIGINT NOT NULL,
+                                       subscription_id BIGINT,
+                                       portone_payment_id VARCHAR(100) NOT NULL,
+    amount BIGINT NOT NULL,
+    pg_real_amount BIGINT NOT NULL,
+    used_point BIGINT DEFAULT 0,
+    status VARCHAR(20) NOT NULL,
+    pg_provider VARCHAR(50),
+    payment_method VARCHAR(30),
+    approved_at DATETIME,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (member_id) REFERENCES member(id),
+    FOREIGN KEY (subscription_id) REFERENCES subscription(id)
+    );
+
+-- POINT_HISTORY
+CREATE TABLE IF NOT EXISTS point_history (
+                                             id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                             member_id BIGINT NOT NULL,
+                                             payment_id BIGINT,
+                                             transaction_type VARCHAR(20) NOT NULL,
+    amount BIGINT NOT NULL,
+    created_at DATETIME NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES member(id),
+    FOREIGN KEY (payment_id) REFERENCES payment(id)
+    );
+
+-- REFUND
+CREATE TABLE IF NOT EXISTS refund (
+                                      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                      payment_id BIGINT NOT NULL,
+                                      reason VARCHAR(255),
+    total_refund_amount BIGINT NOT NULL,
+    point_refund_amount BIGINT DEFAULT 0,
+    pg_refund_amount BIGINT DEFAULT 0,
+    status VARCHAR(20) NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (payment_id) REFERENCES payment(id)
+    );
+
+-- REFUND_ITEM
+CREATE TABLE IF NOT EXISTS refund_item (
+                                           id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                                           refund_id BIGINT NOT NULL,
+                                           order_item_id BIGINT NOT NULL,
+                                           quantity INTEGER NOT NULL,
+                                           created_at DATETIME NOT NULL,
+                                           updated_at DATETIME NOT NULL,
+                                           FOREIGN KEY (refund_id) REFERENCES refund(id),
+    FOREIGN KEY (order_item_id) REFERENCES order_item(id)
+    );

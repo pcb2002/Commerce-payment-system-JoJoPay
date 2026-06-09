@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @Table(
-    name = "subscription_billings",
+    name = "subscription_billing",
     uniqueConstraints = {
         @UniqueConstraint(
             name = "uk_subscription_billing_cycle",
