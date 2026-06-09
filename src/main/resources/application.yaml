@@ -6,7 +6,7 @@ spring:
       region:
         static: ap-northeast-2
   profiles:
-    active: local
+    active: prod
 
 portone:
   secret-key: "MP42bGdUPcTmnU98YXpWCEtLBP26DUqU1WATn20ipyW2HcL3BBwrx7V7nTFQJRPa3V3bbTVKFZjpWxLT"
