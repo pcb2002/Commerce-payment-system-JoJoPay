@@ -73,23 +73,23 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ap-northeast-2
         run: |
-          aws s3 cp build/libs/*-SNAPSHOT.jar s3://camp-health-qkrcoqls-files/app.jar
+          aws s3 cp build/libs/*-SNAPSHOT.jar s3://camp-health-qkrcoqls-files/deploy/app.jar
 
       # 🏃‍♂️ Step 8: [CD] EC2가 S3에서 파일을 다운로드 후 실행
       - name: Deploy via AWS SSM
-        run: |
-          aws ssm send-command \
-            --instance-ids "${{ secrets.INSTANCE_ID }}" \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=[
-              "aws s3 cp s3://jojopay-deploy-bucket/app.jar /home/ec2-user/jojopay-backend/app.jar",
-              "sudo -u ec2-user bash -c \"fuser -k 8080/tcp || true\"",
-              "sudo -u ec2-user bash -c \"cd /home/ec2-user/jojopay-backend && nohup java -jar app.jar --spring.profiles.active=prod > nohup.out 2>&1 &\""
-            ]'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
 
       - name: Run deploy script
         run: |
           aws ssm send-command \
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"sudo -u ec2-user bash -c 'fuser -k 8080/tcp || true'\", \"sudo -u ec2-user bash -c 'cd /home/ec2-user/jojopay-backend && nohup java -jar *.jar --spring.profiles.active=prod > nohup.out 2>&1 &' \"]"
+            --parameters 'commands=[
+              "aws s3 cp s3://camp-health-qkrcoqls-files/deploy/app.jar /home/ec2-user/jojopay-backend/app.jar --region ap-northeast-2",
+              "sudo -u ec2-user bash -c \"fuser -k 8080/tcp || true\"",
+              "sudo -u ec2-user bash -c \"cd /home/ec2-user/jojopay-backend && nohup java -jar app.jar --spring.profiles.active=prod > nohup.out 2>&1 &\""
+            ]'
