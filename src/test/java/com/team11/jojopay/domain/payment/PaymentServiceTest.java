@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
@@ -162,5 +164,130 @@ class PaymentServiceTest {
     // 예외가 터졌으므로 하단 후속 포인트 원장 처리 로직은 단 한 번도 실행되지 않았는지 방어 검증
     verify(memberRepository, never()).findById(anyLong());
     verify(pointService, never()).createHistory(any(), any(), any(), anyLong());
+  }
+
+  // ==========================================
+  // 시나리오 1: [성공 분기 완전 커버] - 포인트 복합 결제 사용 + 등급별 포인트 적립 + 주문 완료 전이
+  // ==========================================
+  @Test
+  @DisplayName("결제 확정 성공: 모든 장부 검증을 통과하면 포인트 차감/적립 원장을 기록하고 주문을 COMPLETED 상태로 전환한다.")
+  void confirmPayment_Success_AllBranches() {
+    // given
+    PaymentConfirmRequest request = new PaymentConfirmRequest("ORD-001", "imp_123");
+
+    // 가짜 연관 객체 셋업
+    Order mockOrder = mock(Order.class);
+    Member mockMember = mock(Member.class);
+    given(mockMember.getId()).willReturn(42L);
+    // 등급별 적립률 5% 가정 (프로젝트의 MembershipGrade 명세 확인 요망)
+    given(mockMember.getMembershipGrade()).willReturn(MembershipGrade.VIP);
+
+    // 진짜 결제 도메인 준비 (복합 포인트 5,000원 태움 ➔ pgRealAmount는 45,000원 계산됨)
+    Payment payment = Payment.createPayment(mockOrder, 42L, "imp_123", 50000L, 5000L);
+    given(paymentRepository.findByPortonePaymentIdWithLock("imp_123")).willReturn(Optional.of(payment));
+
+    // 포트원 정상 승인 데이터 응답 모킹
+    PortOnePaymentResponse portoneResponse = mock(PortOnePaymentResponse.class);
+    PortOnePaymentResponse.Amount mockAmount = mock(PortOnePaymentResponse.Amount.class);
+    given(portoneResponse.getStatus()).willReturn("PAID");
+    given(portoneResponse.getAmount()).willReturn(mockAmount);
+    given(mockAmount.getTotal()).willReturn(45000L); // pgRealAmount와 정확히 일치시켜 위변조 통과
+    given(portOneClient.getPaymentInfo("imp_123")).willReturn(portoneResponse);
+
+    given(memberRepository.findById(any())).willReturn(Optional.of(mockMember));
+
+    // when
+    PaymentResponse response = paymentService.confirmPayment(request);
+
+    // then
+    // 1. 반환 상태 검증
+    assertThat(response.getStatus()).isEqualTo("COMPLETED");
+    assertThat(payment.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
+
+    // 2. [조건문 커버] 사용 포인트 원장(USE) 적립 기록 동작 검증
+    verify(pointService, times(1))
+        .createHistory(eq(42L), eq(payment), eq(PointTransactionType.USE), eq(5000L));
+
+    // 3. [조건문 커버] 등급별 차등 적립 원장(EARN) 동작 검증 (50000원 * VIP혜택 = 적립금 확인)
+    verify(pointService, times(1))
+        .createHistory(eq(42L), eq(payment), eq(PointTransactionType.EARN), anyLong());
+
+    // 4. 멤버십 누적 금액 누적 및 부모 주문 상태 전이 유기적 호출 확인
+    verify(mockMember, times(1)).increaseTotalPaymentAmount(45000L);
+    verify(mockOrder, times(1)).completeOrder();
+  }
+
+  // ==========================================
+  // 시나리오 2: [멱등성 방어선 분기 커버]
+  // ==========================================
+  @Test
+  @DisplayName("결제 확정 멱등성 우회: 이미 COMPLETED 상태인 결제 건이 재요청되면 추가 연산 없이 기존 데이터를 반환한다.")
+  void confirmPayment_ReturnImmediately_WhenAlreadyCompleted() {
+    // given
+    PaymentConfirmRequest request = new PaymentConfirmRequest("ORD-001", "imp_already_done");
+    Payment completedPayment = Payment.createPayment(mock(Order.class), 42L, "imp_already_done", 10000L, 0L);
+    ReflectionTestUtils.setField(completedPayment, "status", PaymentStatus.COMPLETED); // 강제 강제 완료 상태 변경
+
+    given(paymentRepository.findByPortonePaymentIdWithLock("imp_already_done")).willReturn(Optional.of(completedPayment));
+
+    // when
+    PaymentResponse response = paymentService.confirmPayment(request);
+
+    // then
+    assertThat(response.getStatus()).isEqualTo("COMPLETED");
+    // 멱등성에 걸려 통과했으므로 외부 포트원 API를 찌르지 않았음을 입증 (커버리지 수호)
+    verify(portOneClient, never()).getPaymentInfo(anyString());
+  }
+
+  // ==========================================
+  // 시나리오 3: [예외 및 보상 트랜잭션 루프 커버] - 가장 중요 ⭐
+  // ==========================================
+  @Test
+  @DisplayName("결제 검증 실패: 외부 PG사 승인 금액과 우리 장부 금액이 미스매치되면 결제를 FAILED로 돌리고 상품 재고를 전량 자동 복구한다.")
+  void confirmPayment_Fail_ValidationAndRestoreStock() {
+    // given
+    PaymentConfirmRequest request = new PaymentConfirmRequest("ORD-001", "imp_hacked");
+
+    // 복상 트랜잭션이 돌아갈 가짜 주문 품목 리스트 바인딩
+    Order mockOrder = mock(Order.class);
+    OrderItem item1 = mock(OrderItem.class);
+    given(item1.getProductId()).willReturn(101L);
+    given(item1.getQuantity()).willReturn(2);
+    given(mockOrder.getOrderItems()).willReturn(List.of(item1)); // 상품 1개 2개 수량 담김
+
+    Payment payment = Payment.createPayment(mockOrder, 42L, "imp_hacked", 50000L, 0L); // 실결제액 50000원 기대
+    given(paymentRepository.findByPortonePaymentIdWithLock("imp_hacked")).willReturn(Optional.of(payment));
+
+    // 외부 포트원은 해커에 의해 100원만 결제되었다고 변조 응답 가정
+    PortOnePaymentResponse portoneResponse = mock(PortOnePaymentResponse.class);
+    PortOnePaymentResponse.Amount mockAmount = mock(PortOnePaymentResponse.Amount.class);
+    given(portoneResponse.getStatus()).willReturn("PAID");
+    given(portoneResponse.getAmount()).willReturn(mockAmount);
+    given(mockAmount.getTotal()).willReturn(100L); // 50000원 != 100원 (금액 위변조 적발)
+    given(portOneClient.getPaymentInfo("imp_hacked")).willReturn(portoneResponse);
+
+    // when & then
+    assertThatThrownBy(() -> paymentService.confirmPayment(request))
+        .isInstanceOf(ServiceException.class); // 전역 예외 정상 호출 확인
+
+    // [최요구 커버리지] catch 블록 내부에 설계된 재고 복구 로직이 101번 상품에 대해 2개만큼 호출되었는지 철저하게 검증
+    assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+    verify(productService, times(1)).increaseStock(101L, 2);
+    verify(memberRepository, never()).findById(any()); // 회원 조회단까지 가기 전에 정문 차단 증명
+  }
+
+  // ==========================================
+  // 시나리오 4: [원천 누락 에러 분기 커버]
+  // ==========================================
+  @Test
+  @DisplayName("결제 조회 실패: 포트원 결제 아이디를 장부에서 찾을 수 없으면 ORDER_NOT_FOUND 에러를 던진다.")
+  void confirmPayment_Fail_OrderNotFound() {
+    // given
+    PaymentConfirmRequest request = new PaymentConfirmRequest("ORD-001", "imp_ghost");
+    given(paymentRepository.findByPortonePaymentIdWithLock("imp_ghost")).willReturn(Optional.empty());
+
+    // when & then
+    assertThatThrownBy(() -> paymentService.confirmPayment(request))
+        .isInstanceOf(ServiceException.class);
   }
 }
