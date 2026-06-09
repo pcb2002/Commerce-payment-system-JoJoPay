@@ -31,8 +31,6 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "payment", uniqueConstraints = {
         @UniqueConstraint(name = "uk_payment_order_id", columnNames = {"order_id"}),
