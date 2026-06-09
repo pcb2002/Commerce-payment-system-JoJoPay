@@ -3,9 +3,12 @@ package com.team11.jojopay.domain.refund.repository;
 import com.team11.jojopay.domain.refund.entity.Refund;
 import com.team11.jojopay.domain.refund.enums.RefundStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,4 +30,7 @@ public interface RefundRepository extends JpaRepository<Refund, Long> {
      * @return 임계 시간보다 이전에 생성되어 방치된 환불 원장(Refund) 엔티티 리스트
      */
     List<Refund> findAllByStatusAndCreatedAtBefore(RefundStatus refundStatus, LocalDateTime threshold);
+
+    @Query("SELECT r FROM Refund r JOIN r.payment p JOIN p.order o WHERE o.memberId = :memberId ORDER BY r.createdAt DESC")
+    List<Refund> findAllByMemberId(@Param("memberId") Long memberId);
 }

@@ -7,7 +7,9 @@ export default function Navbar() {
     const dropdownRef = useRef(null);
 
     const token = localStorage.getItem('jwtToken');
-    const username = localStorage.getItem('username') || '사용자';
+    const userString = localStorage.getItem('user');
+    const user = userString ? JSON.parse(userString) : null;
+    const username = user?.name || null;
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -28,7 +30,6 @@ export default function Navbar() {
         { label: '내 정보', path: '/my/profile', icon: 'bi-person' },
         { label: '내 장바구니', path: '/cart', icon: 'bi-cart3' },
         { label: '내 주문', path: '/orders', icon: 'bi-bag' },
-        { label: '내 결제', path: '/my/payments', icon: 'bi-credit-card' },
         { label: '내 환불', path: '/my/refunds', icon: 'bi-arrow-counterclockwise' },
     ];
 

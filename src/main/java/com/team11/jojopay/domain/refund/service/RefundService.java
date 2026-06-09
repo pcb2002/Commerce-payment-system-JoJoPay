@@ -3,12 +3,16 @@ package com.team11.jojopay.domain.refund.service;
 import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.exception.ServiceException;
 import com.team11.jojopay.domain.refund.dto.request.RefundRequest;
+import com.team11.jojopay.domain.refund.dto.response.RefundResponse;
 import com.team11.jojopay.domain.refund.entity.Refund;
 import com.team11.jojopay.domain.refund.enums.RefundStatus;
+import com.team11.jojopay.domain.refund.repository.RefundRepository;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -17,6 +21,7 @@ public class RefundService {
 
     private final RefundDbProcessor refundDbProcessor;
     private final PortOneClient portOneClient;
+    private final RefundRepository refundRepository;
 
     /**
      * 외부 PG 호출을 완전히 격리하여 금융권 스펙의 정정합성 환불 오케스트레이션을 완수합니다.
@@ -60,5 +65,12 @@ public class RefundService {
             refundDbProcessor.updateRefundStatus(savedRefund.getId(), RefundStatus.COMPLETED);
             log.info("[포인트 전액 환불 성공] 환불 원장 ID: {}, PG 취소액이 없으므로 즉시 완료 처리되었습니다.", savedRefund.getId());
         }
+    }
+
+    public List<RefundResponse> getMyRefunds(Long memberId) {
+        return refundRepository.findAllByMemberId(memberId)
+                .stream()
+                .map(RefundResponse::from)
+                .toList();
     }
 }

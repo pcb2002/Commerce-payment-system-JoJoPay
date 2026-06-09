@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { login } from '../../api/authApi';
+import { getMyInfo } from '../../api/memberApi';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -22,6 +23,13 @@ export default function LoginPage() {
         try {
             const data = await login(form);
             localStorage.setItem('jwtToken', data.data.jwtToken);
+
+            // 1. 내 정보 가져오기
+            const memberInfo = await getMyInfo();
+
+            // 2. localStorage에 저장 (CommonApiResponse.data 안에 실제 MemberResponse가 있음)
+            localStorage.setItem('user', JSON.stringify(memberInfo.data));
+
             navigate('/products');
         } catch (err) {
             setError(err.response?.data?.message || '로그인에 실패했습니다.');
