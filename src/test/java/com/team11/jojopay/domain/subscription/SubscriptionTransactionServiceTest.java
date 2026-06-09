@@ -1,4 +1,4 @@
-package com.team11.jojopay.domain.subscription.service;
+package com.team11.jojopay.domain.subscription;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,6 +26,7 @@ import com.team11.jojopay.domain.subscription.enums.SubscriptionStatus;
 import com.team11.jojopay.domain.subscription.repository.BillingKeyRepository;
 import com.team11.jojopay.domain.subscription.repository.SubscriptionBillingRepository;
 import com.team11.jojopay.domain.subscription.repository.SubscriptionRepository;
+import com.team11.jojopay.domain.subscription.service.SubscriptionTransactionService;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
