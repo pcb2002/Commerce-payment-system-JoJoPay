@@ -5,11 +5,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.security.test.context.support.WithMockUser;
 import tools.jackson.databind.ObjectMapper;
@@ -18,7 +20,6 @@ import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.service.PaymentService;
 import com.team11.jojopay.common.security.JwtProvider;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -40,27 +41,40 @@ public class PaymentControllerTest {
   @MockitoBean
   private JwtProvider jwtProvider;
 
-  // [메인 클래스 수정 방지 장치]
-  // 메인 클래스에 @EnableJpaAuditing이 붙어있어 발생하는 엔티티 미로드 오류를 이 가짜 빈 한 줄로 완벽히 무력화합니다.
   @MockitoBean
   private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
   @Test
-  @WithMockUser // 가짜 로그인 유저 신분증 장착 (403 방어)
-  @DisplayName("결제 확정 API 성공: 올바른 JSON 요청 시 200 OK를 반환하고 서비스 층을 호출한다.")
+  @WithMockUser
+  @DisplayName("결제 확정 API 성공: 실제 응답 데이터를 빌더로 생성하여 JSON 직렬화 및 결과 스펙을 검증한다.")
   void confirmPayment_Api_Success() throws Exception {
-    // given
+    // given: 요청 객체 준비
     PaymentConfirmRequest request = new PaymentConfirmRequest("ORD-2026-001", "imp_123456");
-    PaymentResponse mockResponse = mock(PaymentResponse.class);
 
-    given(paymentService.confirmPayment(any(PaymentConfirmRequest.class))).willReturn(mockResponse);
+    // 에러 메시지에 나온 타입 순서대로 (Long, String, Long, LocalDateTime) 명시해야 합니다.
+    java.lang.reflect.Constructor<PaymentResponse> constructor =
+        PaymentResponse.class.getDeclaredConstructor(
+            Long.class, String.class, Long.class, java.time.LocalDateTime.class
+        );
+
+    // private 접근 제어를 잠시 해제(무력화)합니다.
+    constructor.setAccessible(true);
+
+    // 인스턴스를 강제로 생성합니다. (타입 주의: 1L, 문자열, 150000L, 현재시간)
+    PaymentResponse realResponse = constructor.newInstance(
+        1L, "ORD-2026-001", 150000L, java.time.LocalDateTime.now()
+    );
+
+    // 서비스가 진짜 데이터가 든 realResponse를 반환하도록 모킹
+    given(paymentService.confirmPayment(any(PaymentConfirmRequest.class))).willReturn(realResponse);
 
     // when & then
     mockMvc.perform(post("/api/v1/payments/confirm")
-            .with(csrf()) // 가짜 CSRF 인증 통과 패스포트 (403 방어)
+            .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data").exists());
 
     verify(paymentService, times(1)).confirmPayment(any(PaymentConfirmRequest.class));
   }
@@ -77,7 +91,8 @@ public class PaymentControllerTest {
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(invalidRequest)))
-        .andExpect(status().isBadRequest()); // 시큐리티를 넘어 정상적으로 컨트롤러 @Valid 유효성 검증 단에서 컷(400)됩니다.
+        .andDo(print())
+        .andExpect(status().isBadRequest());
 
     verify(paymentService, never()).confirmPayment(any());
   }
