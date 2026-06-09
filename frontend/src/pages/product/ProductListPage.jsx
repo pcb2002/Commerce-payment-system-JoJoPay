@@ -4,11 +4,12 @@ import { getProducts } from '../../api/productApi';
 
 const CATEGORY_OPTIONS = [
     { value: '', label: '전체 카테고리' },
-    { value: 'FOOD', label: '식품' },
+    { value: 'TOP', label: '상의' }, // 백엔드 값과 일치시키기
+    { value: 'OUTER', label: '아우터' },
+    { value: 'PANTS', label: '바지' },
+    { value: 'SHOES', label: '신발' },
+    { value: 'ACCESSORY', label: '액세서리' },
     { value: 'ELECTRONICS', label: '전자기기' },
-    { value: 'CLOTHING', label: '의류' },
-    { value: 'BEAUTY', label: '뷰티' },
-    { value: 'ETC', label: '기타' },
 ];
 
 const STATUS_OPTIONS = [

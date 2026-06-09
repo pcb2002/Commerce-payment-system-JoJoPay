@@ -7,10 +7,7 @@ import com.team11.jojopay.domain.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,8 +22,11 @@ public class ProductController {
     // 흐름 → 요청 →  ProductSearchRequest로 자동 매핑 → Service에서 Pageable 생성
     @GetMapping
     public Page<ProductListResponse> getProducts(
-            @Valid ProductSearchRequest request
+            @Valid @ModelAttribute ProductSearchRequest request
     ) {
+
+        System.out.println(">>> 요청된 카테고리: " + request.getCategory());
+        System.out.println(">>> 요청된 상태: " + request.getStatus());
 
         // 서비스 호출
         return productService.getProductList(request);

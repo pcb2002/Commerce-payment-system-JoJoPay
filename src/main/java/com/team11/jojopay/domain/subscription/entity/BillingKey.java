@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "billing_keys")
+@Table(name = "billing_key")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BillingKey extends BaseTimeEntity {
 

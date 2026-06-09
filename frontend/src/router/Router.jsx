@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from 'react-router-dom';
 import LoginPage from "../pages/auth/LoginPage.jsx";
 import SignupPage from "../pages/auth/SignupPage.jsx";
 import ProductListPage from "../pages/product/ProductListPage.jsx";
@@ -14,37 +14,35 @@ import PointPage from "../pages/point/PointPage.jsx";
 
 export default function Router() {
     return (
-        <BrowserRouter>
-            <Routes>
-                {/* Auth */}
-                <Route path="/" element={<LoginPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
+        <Routes>
+            {/* Auth */}
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
-                {/* Product */}
-                <Route path="/products" element={<ProductListPage />} />
-                <Route path="/products/:productId" element={<ProductDetailPage />} />
+            {/* Product */}
+            <Route path="/products" element={<ProductListPage />} />
+            <Route path="/products/:productId" element={<ProductDetailPage />} />
 
-                {/* Cart */}
-                <Route path="/cart" element={<CartPage />} />
+            {/* Cart */}
+            <Route path="/cart" element={<CartPage />} />
 
-                {/* Order */}
-                <Route path="/orders" element={<OrderListPage />} />
-                <Route path="/orders/new" element={<OrderNewPage />} />
-                <Route path="/orders/:orderNumber" element={<OrderDetailPage />} />
+            {/* Order */}
+            <Route path="/orders" element={<OrderListPage />} />
+            <Route path="/orders/new" element={<OrderNewPage />} />
+            <Route path="/orders/:orderNumber" element={<OrderDetailPage />} />
 
-                {/* Payment */}
-                <Route path="/payments" element={<PaymentPage />} />
+            {/* Payment */}
+            <Route path="/payments" element={<PaymentPage />} />
 
-                {/* Refund */}
-                <Route path="/orders/:orderId/refund" element={<RefundPage />} />
+            {/* Refund */}
+            <Route path="/orders/:orderId/refund" element={<RefundPage />} />
 
-                {/* Subscription */}
-                <Route path="/subscriptions" element={<SubscriptionPage />} />
+            {/* Subscription */}
+            <Route path="/subscriptions" element={<SubscriptionPage />} />
 
-                {/* Point */}
-                <Route path="/points" element={<PointPage />} />
-            </Routes>
-        </BrowserRouter>
+            {/* Point */}
+            <Route path="/points" element={<PointPage />} />
+        </Routes>
     );
 }
