@@ -4,9 +4,13 @@ spring:
   cloud:
     aws:
       region:
-        static: ap-southeast-2
+        static: ap-northeast-2
   profiles:
-    active: local
+    active: prod
+
+portone:
+  secret-key: "aoat5HevQd1Wza1Aqw6XmAwF1UIu3NRDEpbcPw0izcILX1VOkt6C1o8liulr7eSWziE02DZ7bq5mznVD"
+  api-url: "https://api.portone.io"
 
 ---
 
@@ -26,29 +30,55 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    defer-datasource-initialization: true # Hibernate가 테이블을 다 만든 후에 data.sql을 실행하도록 지연시킴
+
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+  sql:
+    init:
+      mode: always
+
 jwt:
   secret-key: localEnvDummySecretKeyForJojoPayProjectTest12345!
+  access-token-valid-time: 36000000
 
 ---
-
 spring:
   config:
     activate:
       on-profile: prod
-    import: aws-parameterstore:/config/jojopay/ # AWS에서 파라미터들을 싹 긁어옵니다.
+    import: aws-parameterstore:/config/jojopay/
+
+  # [추가/수정된 데이터베이스 설정]
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # url, username, password는 aws-parameterstore를 통해 로드되도록 설정
+
   jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-  Jackson:
+    show-sql: false
+
+  # [초기화 스크립트 실행 방지]
+  sql:
+    init:
+      mode: never
+
+  # [H2 콘솔 끄기]
+  h2:
+    console:
+      enabled: false
+
+  jackson:
     time-zone: Asia/Seoul
 
-jwt:
-  secret-key: ${jwt.secret-key}
-  access-expiration: 3600000
+server:
+  address: 0.0.0.0
+  port: 8080
 
-portone:
-  secret-key: ${portone.secret-key}
+jwt:
+  access-token-valid-time: 3600000

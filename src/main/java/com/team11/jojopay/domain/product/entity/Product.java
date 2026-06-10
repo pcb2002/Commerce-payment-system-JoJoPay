@@ -1,0 +1,112 @@
+package com.team11.jojopay.domain.product.entity;
+
+import com.team11.jojopay.common.entity.BaseTimeEntity;
+import com.team11.jojopay.common.exception.ErrorCode;
+import com.team11.jojopay.common.exception.ServiceException;
+import com.team11.jojopay.domain.product.enums.Category;
+import com.team11.jojopay.domain.product.enums.ProductStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Table(name = "product")
+@Getter
+@Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Product extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // 상품명
+    @Column(nullable = false, length = 255)
+    private String name;
+
+    // 판매가
+    @Column(nullable = false)
+    private Long price;
+
+    // 재고 수량
+    @Column(nullable = false)
+    private Integer stock;
+
+    // 상품 설명
+    @Column(nullable = false, length = 1000, columnDefinition = "TEXT")
+    private String description;
+
+    // 판매 상태
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ProductStatus status;
+
+    // 카테고리
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private Category category;
+
+
+    /**
+     * 상품이 현재 주문 가능한 상태인지 스스로 검증합니다.
+     * @param quantity 주문 요청 수량
+     */
+    public void validateOrderable(Integer quantity) {
+        // 1. 판매 상태 검증
+         if (this.status != ProductStatus.ON_SALE) {
+             throw new ServiceException(ErrorCode.INVALID_PRODUCT_STATUS);
+        }
+
+        // 2. 재고 부족 검증
+        if (this.stock < quantity) {
+            throw new ServiceException(ErrorCode.INSUFFICIENT_STOCK);
+        }
+    }
+
+    /**
+     * 상품 재고를 차감합니다. (주문 생성 시 호출)
+     * @param quantity 차감할 수량
+     */
+    public void decreaseStock(Integer quantity) {
+        validateOrderable(quantity); // 차감 전 판매 상태 및 재고를 다시 한번 확실하게 검증!
+        this.stock -= quantity;
+    }
+
+    /**
+     * 상품 재고를 복구합니다. (주문 취소 또는 결제 실패 시 호출)
+     * @param quantity 복구할 수량
+     */
+    public void increaseStock(Integer quantity) {
+        this.stock += quantity;
+    }
+
+
+    // 테스트용 정적 팩토리 추가
+    public static Product create(
+            String name,
+            Long price,
+            Integer stock,
+            String description,
+            ProductStatus status,
+            Category category
+    ) {
+
+        Product product = new Product();
+
+        product.name = name;
+        product.price = price;
+        product.stock = stock;
+        product.description = description;
+        product.status = status;
+        product.category = category;
+
+        return product;
+    }
+}
