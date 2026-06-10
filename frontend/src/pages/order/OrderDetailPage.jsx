@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderDetail, cancelOrder } from '../../api/orderApi';
+import { confirmPayment } from '../../api/paymentApi';
 
 const STATUS_LABEL = {
     PENDING_PAYMENT: { label: '결제 대기', cls: 'text-bg-warning' },
     COMPLETED:       { label: '결제 완료', cls: 'text-bg-success' },
-    CANCELLED:       { label: '취소됨',   cls: 'text-bg-secondary' },
-    FAILED:          { label: '결제 실패', cls: 'text-bg-danger' },
+    CANCELLED:       { label: '취소됨',    cls: 'text-bg-secondary' },
+    PARTIAL_REFUND:  { label: '부분 환불', cls: 'text-bg-info' },
+    FULLY_REFUNDED:  { label: '전체 환불', cls: 'text-bg-secondary' },
 };
 
 const PAYMENT_STATUS_LABEL = {
-    READY:  '결제 준비',
-    PAID:   '결제 완료',
-    FAILED: '결제 실패',
-    CANCELLED: '결제 취소',
+    READY:     '결제 준비',
+    COMPLETED: '결제 완료',
+    FAILED:    '결제 실패',
+    CANCELED:  '결제 취소',
 };
 
 export default function OrderDetailPage() {
@@ -22,6 +24,7 @@ export default function OrderDetailPage() {
 
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [paying, setPaying] = useState(false);
     const [cancelling, setCancelling] = useState(false);
     const [error, setError] = useState('');
 
@@ -50,6 +53,50 @@ export default function OrderDetailPage() {
             alert(err.response?.data?.message || '주문 취소에 실패했습니다.');
         } finally {
             setCancelling(false);
+        }
+    };
+
+    const handlePayment = async () => {
+        const portone = window.PortOne;
+        if (!portone) return alert('결제 모듈을 불러올 수 없습니다.');
+
+        setPaying(true);
+        try {
+            const userString = localStorage.getItem('user');
+            const user = userString ? JSON.parse(userString) : null;
+
+            const portonePaymentId = order.payment?.portonePaymentId;
+            const orderName = order.orderItems[0].productName +
+                (order.orderItems.length > 1 ? ` 외 ${order.orderItems.length - 1}건` : '');
+
+            const response = await portone.requestPayment({
+                storeId: import.meta.env.VITE_PORTONE_STORE_ID,
+                channelKey: import.meta.env.VITE_PORTONE_CHANNEL_KEY,
+                paymentId: portonePaymentId,
+                orderName,
+                totalAmount: order.payment?.pgRealAmount ?? order.totalAmount,
+                currency: 'KRW',
+                payMethod: 'CARD',
+                customer: {
+                    fullName: user?.name || null,
+                    email: user?.email || null,
+                    phoneNumber: user?.phoneNumber || null
+                }
+            });
+
+            if (response.code !== undefined) {
+                alert(`결제 실패: ${response.message}`);
+                return;
+            }
+
+            await confirmPayment({ orderNumber: order.orderNumber, portonePaymentId });
+            alert('결제가 완료되었습니다.');
+            const data = await getOrderDetail(orderNumber);
+            setOrder(data.data);
+        } catch (err) {
+            alert(err.response?.data?.message || '결제 중 오류가 발생했습니다.');
+        } finally {
+            setPaying(false);
         }
     };
 
@@ -155,15 +202,44 @@ export default function OrderDetailPage() {
                 </div>
             )}
 
-            {/* 주문 취소 버튼 - PENDING_PAYMENT 상태일 때만 표시 */}
             {order.status === 'PENDING_PAYMENT' && (
+                <div className="d-flex flex-column gap-2">
+                    <button
+                        className="btn btn-primary w-100"
+                        onClick={handlePayment}
+                        disabled={paying}
+                    >
+                        {paying ? <span className="spinner-border spinner-border-sm me-2" /> : null}
+                        결제하기
+                    </button>
+                    <button
+                        className="btn btn-outline-danger w-100"
+                        onClick={handleCancel}
+                        disabled={cancelling}
+                    >
+                        {cancelling ? <span className="spinner-border spinner-border-sm me-2" /> : null}
+                        주문 취소
+                    </button>
+                </div>
+            )}
+            {(order.status === 'COMPLETED' || order.status === 'PARTIAL_REFUND') && (
                 <button
-                    className="btn btn-outline-danger w-100"
-                    onClick={handleCancel}
-                    disabled={cancelling}
+                    className="btn btn-outline-warning w-100 mt-2"
+                    onClick={() => navigate(`/orders/${order.orderId}/refund`, {
+                        state: {
+                            orderNumber: order.orderNumber,
+                            items: order.orderItems
+                                .filter((item) => item.status !== 'REFUNDED')
+                                .map((item) => ({
+                                    orderItemId: item.orderItemId,
+                                    productName: item.productName,
+                                    quantity: item.quantity,
+                                    price: item.priceAtOrder,
+                                }))
+                        }
+                    })}
                 >
-                    {cancelling ? <span className="spinner-border spinner-border-sm me-2" /> : null}
-                    주문 취소
+                    환불 신청
                 </button>
             )}
         </div>

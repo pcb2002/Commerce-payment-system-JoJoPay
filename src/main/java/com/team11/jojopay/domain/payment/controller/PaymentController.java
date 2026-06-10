@@ -1,25 +1,31 @@
 package com.team11.jojopay.domain.payment.controller;
 
+import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.response.CommonApiResponse;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.service.PaymentService;
+import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
+import static com.team11.jojopay.common.exception.ErrorCode.UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.OK;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
+  private final PortOneClient portOneClient;
+  private final ObjectMapper objectMapper; // JSON 파싱용
   private final PaymentService paymentService;
 
   /**

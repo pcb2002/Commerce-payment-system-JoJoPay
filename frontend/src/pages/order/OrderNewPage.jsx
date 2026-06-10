@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { previewOrder, createOrder } from '../../api/orderApi';
+import { confirmPayment } from '../../api/paymentApi';
 
 export default function OrderNewPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { cartItemIds = [] } = location.state || {};
+    const { cartItemIds, productId, quantity } = location.state || {};
 
     const [preview, setPreview] = useState(null);
     const [usedPoint, setUsedPoint] = useState(0);
@@ -14,14 +15,21 @@ export default function OrderNewPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (!cartItemIds.length) {
-            setError('주문할 상품이 없습니다. 장바구니를 확인해주세요.');
+        // 둘 다 없으면 에러
+        if (!cartItemIds && (!productId || !quantity)) {
+            setError('주문할 상품 정보를 불러올 수 없습니다.');
             setLoading(false);
             return;
         }
+
         const fetchPreview = async () => {
             try {
-                const data = await previewOrder({ cartItemIds });
+                // API에 넘겨줄 데이터 구성
+                const requestData = cartItemIds
+                    ? { cartItemIds }
+                    : { productId, quantity };
+
+                const data = await previewOrder(requestData);
                 setPreview(data.data);
             } catch (err) {
                 setError('주문서를 불러오는 데 실패했습니다.');
@@ -30,18 +38,70 @@ export default function OrderNewPage() {
             }
         };
         fetchPreview();
-    }, []);
+    }, [cartItemIds, productId, quantity]);
 
     const finalAmount = preview ? Math.max(0, preview.totalAmount - usedPoint) : 0;
 
     const handleSubmit = async () => {
         setSubmitting(true);
         setError('');
+
         try {
-            const data = await createOrder({ cartItemIds, usedPoint });
-            navigate(`/orders/${data.data.orderNumber}`, { replace: true });
+            const userString = localStorage.getItem('user');
+            const user = userString ? JSON.parse(userString) : null;
+
+            // 1. 주문 생성 (백엔드에서 orderNumber와 portonePaymentId를 반환한다고 가정)
+            // 주의: 백엔드 createOrder API가 portonePaymentId를 리턴하도록 수정되어 있어야 합니다!
+            const orderRequestData = cartItemIds
+                ? { cartItemIds, usedPoint }
+                : { productId, quantity, usedPoint };
+
+            const orderData = await createOrder(orderRequestData);
+            const { orderNumber, portonePaymentId } = orderData.data;
+
+            const portone = window.PortOne;
+            if (!portone) {
+                throw new Error('결제 모듈을 불러올 수 없습니다.');
+            }
+
+            // 2. 포트원 결제창 띄우기 (Promise 방식 사용)
+            const response = await portone.requestPayment({
+                storeId: import.meta.env.VITE_PORTONE_STORE_ID,
+                channelKey: import.meta.env.VITE_PORTONE_CHANNEL_KEY,
+                paymentId: portonePaymentId, // ★중요: 백엔드에서 생성된 ID를 그대로 사용
+                orderName: preview.items[0].productName + (preview.items.length > 1 ? ` 외 ${preview.items.length - 1}건` : ''),
+                totalAmount: finalAmount,
+                currency: 'KRW',
+                payMethod: 'CARD',
+                // redirectUrl 제거: Promise로 결과 받아서 백엔드 검증을 거친 후 페이지 이동할 것이므로 불필요
+                customer: {
+                    fullName: user?.name || null,
+                    email: user?.email || null,
+                    phoneNumber: user?.phoneNumber || null
+                }
+            });
+
+            // 3. 결제창에서 에러 발생 시 처리
+            if (response.code !== undefined) {
+                setError(`결제 실패: ${response.message}`);
+                setSubmitting(false);
+                return;
+            }
+
+            // 4. 결제 성공 시 백엔드에 '결제 완료되었으니 검증해줘'라고 요청
+            // 이 과정이 있어야 백엔드에서 포인트 차감/적립/주문상태 변경이 일어납니다.
+            await confirmPayment({
+                orderId: orderNumber, // 또는 백엔드 요구사항에 맞게
+                portonePaymentId: portonePaymentId
+            });
+
+            // 5. 검증 성공 시 이동
+            alert("결제가 완료되었습니다.");
+            navigate(`/orders/${orderNumber}`);
+
         } catch (err) {
-            setError(err.response?.data?.message || '주문에 실패했습니다.');
+            console.error(err);
+            setError(err.response?.data?.message || err.message || '결제 중 오류가 발생했습니다.');
             setSubmitting(false);
         }
     };

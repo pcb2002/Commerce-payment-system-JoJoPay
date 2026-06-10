@@ -16,6 +16,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.Map;
 
 /**
@@ -133,16 +134,11 @@ public class PortOneClient {
       // 웹훅 본문 텍스트를 통째로 암호화하여 바이너리 해시 데이터 추출
       byte[] hash = hmacSha256.doFinal(webhookBody.getBytes(StandardCharsets.UTF_8));
 
-      // 바이너리(byte) 형태의 데이터를 사람이 읽을 수 있는 16진수 소문자 문자열로 포맷 변환
-      StringBuilder hexString = new StringBuilder();
-      for (byte b : hash) {
-        String hex = Integer.toHexString(0xff & b);
-        if (hex.length() == 1) hexString.append('0');
-        hexString.append(hex);
-      }
+      // Java 17+ HexFormat 사용
+      String hexString = HexFormat.of().formatHex(hash);
 
       // 우리가 계산한 결과물과 포트원이 보낸 헤더 서명 값을 대소문자 구분 없이 최종 대조
-      return hexString.toString().equalsIgnoreCase(receivedHeaderSignature);
+      return hexString.equalsIgnoreCase(receivedHeaderSignature);
     } catch (Exception e) {
       // 알고리즘 오타, 시크릿 키 누락, 웹훅 바디 null 등 어떤 에러라도 나면 안전하게 검증 실패(false)로 귀결시킴
       return false;

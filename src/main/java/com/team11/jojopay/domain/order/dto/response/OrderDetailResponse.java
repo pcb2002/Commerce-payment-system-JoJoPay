@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Builder
 public class OrderDetailResponse {
 
+    private Long orderId;
     private String orderNumber;
     private String status;
     private Long totalAmount;
@@ -30,6 +31,7 @@ public class OrderDetailResponse {
 
     public static OrderDetailResponse of(Order order, Payment payment) {
         return OrderDetailResponse.builder()
+                .orderId(order.getId())
                 .orderNumber(order.getOrderNumber())
                 .status(order.getStatus().name())
                 .totalAmount(order.getTotalAmount())
@@ -49,6 +51,8 @@ public class OrderDetailResponse {
     @Getter
     @Builder
     public static class OrderItemSnapshotResponse {
+
+        private Long orderItemId;
         private Long productId;
         private String productName;      // 주문 당시의 상품명 (스냅샷)
         private Long priceAtOrder;    // 주문 당시의 판매가 (스냅샷)
@@ -57,6 +61,7 @@ public class OrderDetailResponse {
 
         public static OrderItemSnapshotResponse from(OrderItem item) {
             return OrderItemSnapshotResponse.builder()
+                    .orderItemId(item.getId())
                     .productId(item.getProductId())
                     .productName(item.getProductName())
                     .priceAtOrder(item.getPriceAtOrder())

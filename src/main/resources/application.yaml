@@ -9,7 +9,7 @@ spring:
     active: prod
 
 portone:
-  secret-key: "MP42bGdUPcTmnU98YXpWCEtLBP26DUqU1WATn20ipyW2HcL3BBwrx7V7nTFQJRPa3V3bbTVKFZjpWxLT"
+  secret-key: "aoat5HevQd1Wza1Aqw6XmAwF1UIu3NRDEpbcPw0izcILX1VOkt6C1o8liulr7eSWziE02DZ7bq5mznVD"
   api-url: "https://api.portone.io"
 
 ---

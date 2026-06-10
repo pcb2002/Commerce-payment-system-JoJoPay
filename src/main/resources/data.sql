@@ -12,6 +12,8 @@ INSERT INTO product (id, name, price, stock, description, status, category, crea
 VALUES (2, '무선 마우스', 30000, 100, '고감도 마우스', 'ON_SALE', 'ELECTRONICS', NOW(), NOW());
 INSERT INTO product (id, name, price, stock, description, status, category, created_at, updated_at)
 VALUES (3, '친환경 텀블러', 15000, 30, '가벼운 텀블러', 'ON_SALE', 'ACCESSORY', NOW(), NOW());
+INSERT INTO product (id, name, price, stock, description, status, category, created_at, updated_at)
+VALUES (4, '대나무 헬리콥터', 1000, 30, '테스트용', 'ON_SALE', 'ACCESSORY', NOW(), NOW());
 
 -- 3. CART
 INSERT INTO cart (id, member_id, created_at, updated_at) VALUES (1, 1, NOW(), NOW());
