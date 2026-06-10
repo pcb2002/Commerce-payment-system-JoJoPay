@@ -1,4 +1,11 @@
-import api from "./axios.js";
+import axios from './axios';
 
-export const refundOrder = (orderId, orderNumber, reason, items) =>
-    api.post(`/api/v1/orders/${orderId}/refund`, { orderNumber, reason, items });
+export const getMyRefunds = async () => {
+    const response = await axios.get('/api/v1/orders/my');
+    return response.data;
+};
+
+export const refundOrder = async (orderId, { orderNumber, reason, items }) => {
+    const response = await axios.post(`/api/v1/orders/${orderId}/refund`, { orderNumber, reason, items });
+    return response.data;
+};

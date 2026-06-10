@@ -2,12 +2,15 @@ package com.team11.jojopay.domain.refund.controller;
 
 import com.team11.jojopay.common.response.CommonApiResponse;
 import com.team11.jojopay.domain.refund.dto.request.RefundRequest;
+import com.team11.jojopay.domain.refund.dto.response.RefundResponse;
 import com.team11.jojopay.domain.refund.service.RefundService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 환불(Refund) 도메인의 비즈니스 API를 외부에 노출하는 컨트롤러 클래스입니다.
@@ -34,5 +37,11 @@ public class RefundController {
     public CommonApiResponse<Void> refundOrder(@AuthenticationPrincipal Long memberId, @PathVariable Long orderId, @Valid @RequestBody RefundRequest request) {
         refundService.refundOrder(memberId, request);
         return CommonApiResponse.success(HttpStatus.OK, "환불 처리가 완료되었습니다.", null);
+    }
+
+    @GetMapping("/my")
+    public CommonApiResponse<List<RefundResponse>> getMyRefunds(
+            @AuthenticationPrincipal Long memberId) {
+        return CommonApiResponse.success(HttpStatus.OK, "내 환불 목록", refundService.getMyRefunds(memberId));
     }
 }

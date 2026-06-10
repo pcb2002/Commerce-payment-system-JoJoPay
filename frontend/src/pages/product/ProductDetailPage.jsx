@@ -129,20 +129,13 @@ export default function ProductDetailPage() {
 
                     <div className="d-flex gap-2">
                         <button
-                            className={`btn flex-grow-1 ${cartSuccess ? 'btn-success' : 'btn-primary'}`}
+                            className={`btn w-100 ${cartSuccess ? 'btn-success' : 'btn-primary'}`}
                             disabled={product.status !== 'ON_SALE' || cartLoading}
                             onClick={handleAddCart}
                         >
                             {cartLoading
                                 ? <span className="spinner-border spinner-border-sm me-1" />
                                 : cartSuccess ? '✓ 담겼습니다!' : '장바구니 담기'}
-                        </button>
-                        <button
-                            className="btn btn-outline-primary flex-grow-1"
-                            disabled={product.status !== 'ON_SALE'}
-                            onClick={() => navigate('/orders/new', { state: { productId: product.productId, quantity } })}
-                        >
-                            바로 주문
                         </button>
                     </div>
                     {cartSuccess && (

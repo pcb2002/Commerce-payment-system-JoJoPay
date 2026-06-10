@@ -1,25 +1,31 @@
 package com.team11.jojopay.domain.payment.controller;
 
+import com.team11.jojopay.common.exception.ErrorCode;
 import com.team11.jojopay.common.response.CommonApiResponse;
 import com.team11.jojopay.domain.payment.dto.request.PaymentConfirmRequest;
 import com.team11.jojopay.domain.payment.dto.response.PaymentResponse;
 import com.team11.jojopay.domain.payment.service.PaymentService;
+import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
+import static com.team11.jojopay.common.exception.ErrorCode.UNAUTHORIZED;
 import static org.springframework.http.HttpStatus.OK;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
+  private final PortOneClient portOneClient;
+  private final ObjectMapper objectMapper; // JSON 파싱용
   private final PaymentService paymentService;
 
   /**
@@ -41,13 +47,33 @@ public class PaymentController {
    * 주는 엔드포인트입니다.
    */
   @PostMapping("/webhook")
-  public CommonApiResponse<Void> handleWebhook(@RequestBody Map<String, String> payload) {
-    // 포트원 웹훅 페이로드에서 payment_id 추출
-    String portonePaymentId = payload.get("payment_id");
+  public CommonApiResponse<Void> handleWebhook(@RequestHeader("x-portone-signature") String signature, // 1. 서명 받기
+                                               @RequestBody String rawBody) { // 2. Map 대신 String으로 원본 데이터 받기
 
-    // 결제 승인 로직 재사용 (서비스 내부의 멱등성 로직 덕분에 중복 처리되지 않음)
-    paymentService.confirmPayment(new PaymentConfirmRequest(null, portonePaymentId));
+    // 1. 서명 검증 실패 시 ErrorCode.UNAUTHORIZED 반환
+    if (!portOneClient.verifyWebhookSignature(rawBody, signature)) {
+      log.warn("🚨 웹훅 서명 검증 실패! 위변조된 요청입니다.");
+      return CommonApiResponse.error(ErrorCode.UNAUTHORIZED);
+    }
 
-    return CommonApiResponse.success(HttpStatus.OK, "웹훅 처리가 완료되었습니다.", null);
+    try {
+      // 2. JSON 파싱
+      JsonNode root = objectMapper.readTree(rawBody);
+      // 포트원 웹훅 페이로드 구조에 따라 path("data").path("payment_id") 부분을 확인하세요
+      String portonePaymentId = root.path("data").path("payment_id").asText();
+
+      log.info("✅ 웹훅 처리 시작: {}", portonePaymentId);
+
+      // 3. 서비스 호출
+      paymentService.confirmPayment(new PaymentConfirmRequest(null, portonePaymentId));
+
+      // 성공 응답 (CommonApiResponse의 성공 규격에 맞춤)
+      return CommonApiResponse.success(OK, "웹훅 처리가 완료되었습니다.", null);
+
+    } catch (Exception e) {
+      log.error("웹훅 처리 중 오류 발생: ", e);
+      // 4. 예외 발생 시 ErrorCode.INTERNAL_SERVER_ERROR 반환
+      return CommonApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
   }
 }

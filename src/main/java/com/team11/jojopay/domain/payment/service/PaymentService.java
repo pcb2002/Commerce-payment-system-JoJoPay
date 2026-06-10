@@ -16,9 +16,11 @@ import com.team11.jojopay.domain.point.service.PointService;
 import com.team11.jojopay.domain.product.service.ProductService;
 import com.team11.jojopay.infrastructure.portone.client.PortOneClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -90,11 +92,17 @@ public class PaymentService {
    * 포트원 응답 데이터와 우리 DB 데이터를 비교 검증합니다.
    */
   private void validatePortOneStatus(Payment payment, PortOnePaymentResponse portoneData) {
-    // 결제 상태가 'PAID'가 아니거나 금액이 다르면 예외 발생
-    if (!"PAID".equals(portoneData.getStatus()) ||
-        !payment.getPgRealAmount().equals(portoneData.getAmount().getTotal())) {
-      payment.fail(); // 엔티티 상태 변경
-      throw new ServiceException(ErrorCode.VALIDATION_FAILED);
+    // 1. 상태 검증
+    if (!"PAID".equals(portoneData.getStatus())) {
+      // 이미 취소된 건인지, 실패한 건인지에 따라 로그를 다르게 남기면 디버깅이 편합니다.
+      log.warn("결제 상태 불일치: ID={}, 포트원상태={}", payment.getPortonePaymentId(), portoneData.getStatus());
+      throw new ServiceException(ErrorCode.VALIDATION_FAILED); // 혹은 결제 상태별 에러코드
+    }
+
+    // 2. 금액 검증 (중요!)
+    // 포트원 응답값의 amount가 null일 수도 있으니 방어 로직 추가
+    if (portoneData.getAmount() == null || !payment.getPgRealAmount().equals(portoneData.getAmount().getTotal())) {
+      throw new ServiceException(ErrorCode.INVALID_AMOUNT_FORMAT);
     }
   }
 }
