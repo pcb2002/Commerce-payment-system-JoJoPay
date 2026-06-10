@@ -18,38 +18,49 @@ class WebhookRequestTest {
 
     @BeforeAll
     static void initValidator() {
-        // 자바 표준 규격의 밸리데이터 팩토리를 로드하여 테스트 환경에 격리 이식합니다.
+        // 자바 빈 빌리데이션 명세를 단독 실행하기 위해 로컬 팩토리 머신 활성화
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
     @Test
-    @DisplayName("WebhookRequest 성공 검증")
+    @DisplayName("DTO 유효성 검증: 정상적인 이벤트 유형과 거래 식별자가 들어오면 위반 제약조건이 0개여야 한다.")
     void webhookRequest_Validation_Success() {
         // given
-        WebhookRequest request = new WebhookRequest("PAYMENT_SUCCESS", 1L, 10000L, "DONE");
+        WebhookRequest request = new WebhookRequest("PAYMENT_CANCEL", "portone-test-id-1234");
 
-        // when: 유효성 검증 수행 및 Getter 호출 라인 커버
+        // when
         Set<ConstraintViolation<WebhookRequest>> violations = validator.validate(request);
 
-        // then: 에러가 전혀 없음을 단언
-        assertThat(violations).isEmpty();
-        assertThat(request.getEventType()).isEqualTo("PAYMENT_SUCCESS");
-        assertThat(request.getPaymentId()).isEqualTo(1L);
-        assertThat(request.getAmount()).isEqualTo(10000L);
-        assertThat(request.getStatus()).isEqualTo("DONE");
+        // then
+        assertThat(violations).isEmpty(); // 어떠한 보안 위반 사항도 없어야 함
     }
 
     @Test
-    @DisplayName("WebhookRequest 실패 검증")
-    void webhookRequest_Validation_Fail_NotBlank_And_IsNull() {
-        // given: 필수값들을 전부 누락(null 또는 공백)시킨 위험한 상태의 DTO 조립
-        WebhookRequest invalidRequest = new WebhookRequest(" ", null, null, "");
+    @DisplayName("DTO 제약 조건 위반 검증: eventType에 빈 값이 인입되면 @NotBlank 어노테이션 규칙에 의해 에러 목록이 적재된다.")
+    void webhookRequest_Validation_NotBlank_EventType() {
+        // given: eventType이 공백 문자열인 상황
+        WebhookRequest request = new WebhookRequest(" ", "portone-test-id-1234");
 
-        // when: 유효성 검증 수행
-        Set<ConstraintViolation<WebhookRequest>> violations = validator.validate(invalidRequest);
+        // when
+        Set<ConstraintViolation<WebhookRequest>> violations = validator.validate(request);
 
-        // then: 제약 조건 위반이 정확히 4개 적발되었는지 검증하여 사각지대 전면 제거
-        assertThat(violations).hasSize(4);
+        // then
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("이벤트 유형은 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("DTO 제약 조건 위반 검증: portonePaymentId가 완전히 null인 유령 객체가 인입되면 빈 입력값 제약조건에 걸린다.")
+    void webhookRequest_Validation_NotBlank_PortoneId() {
+        // given: portonePaymentId 정보 누락 상황
+        WebhookRequest request = new WebhookRequest("PAYMENT_SUCCESS", null);
+
+        // when
+        Set<ConstraintViolation<WebhookRequest>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getMessage()).isEqualTo("포트원 결제 식별값은 필수입니다.");
     }
 }

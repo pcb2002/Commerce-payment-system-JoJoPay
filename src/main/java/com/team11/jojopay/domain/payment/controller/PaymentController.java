@@ -41,39 +41,4 @@ public class PaymentController {
     // 서비스가 준 결과를 공통 응답 포맷에 담아서 반환한다.
     return CommonApiResponse.success(OK, "결제 승인 완료", response);
   }
-
-  /**
-   * [API 2] 포트원 웹훅(Webhook) 수신 사용자가 결제 완료 후 브라우저를 종료하는 등의 상황을 대비하여, 포트원 서버가 우리 서버로 결제 결과를 비동기 통보해
-   * 주는 엔드포인트입니다.
-   */
-  @PostMapping("/webhook")
-  public CommonApiResponse<Void> handleWebhook(@RequestHeader("x-portone-signature") String signature, // 1. 서명 받기
-                                               @RequestBody String rawBody) { // 2. Map 대신 String으로 원본 데이터 받기
-
-    // 1. 서명 검증 실패 시 ErrorCode.UNAUTHORIZED 반환
-    if (!portOneClient.verifyWebhookSignature(rawBody, signature)) {
-      log.warn("🚨 웹훅 서명 검증 실패! 위변조된 요청입니다.");
-      return CommonApiResponse.error(ErrorCode.UNAUTHORIZED);
-    }
-
-    try {
-      // 2. JSON 파싱
-      JsonNode root = objectMapper.readTree(rawBody);
-      // 포트원 웹훅 페이로드 구조에 따라 path("data").path("payment_id") 부분을 확인하세요
-      String portonePaymentId = root.path("data").path("payment_id").asText();
-
-      log.info("✅ 웹훅 처리 시작: {}", portonePaymentId);
-
-      // 3. 서비스 호출
-      paymentService.confirmPayment(new PaymentConfirmRequest(null, portonePaymentId));
-
-      // 성공 응답 (CommonApiResponse의 성공 규격에 맞춤)
-      return CommonApiResponse.success(OK, "웹훅 처리가 완료되었습니다.", null);
-
-    } catch (Exception e) {
-      log.error("웹훅 처리 중 오류 발생: ", e);
-      // 4. 예외 발생 시 ErrorCode.INTERNAL_SERVER_ERROR 반환
-      return CommonApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
-  }
 }

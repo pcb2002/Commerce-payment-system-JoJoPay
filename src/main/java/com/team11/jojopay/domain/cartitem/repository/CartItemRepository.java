@@ -18,7 +18,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
 
     // 동일 상품 존재 여부 조회 - 삭제되지 않은 데이터만
-    Optional<CartItem> findByCartIdAndProduct_IdAndDeletedAtIsNull(Long cartId, Long productId);
+    Optional<CartItem> findByCartIdAndProductIdAndDeletedAtIsNull(Long cartId, Long productId);
 
 
     // 특정 장바구니 상품 조회

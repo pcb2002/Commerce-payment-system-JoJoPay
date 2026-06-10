@@ -97,7 +97,7 @@ public class CartService {
          * soft delete 되지 않은 데이터만 조회
          */
         CartItem cartItem = cartItemRepository
-                .findByCartIdAndProduct_IdAndDeletedAtIsNull(
+                .findByCartIdAndProductIdAndDeletedAtIsNull(
                         cart.getId(),
                         product.getId()
                 )
