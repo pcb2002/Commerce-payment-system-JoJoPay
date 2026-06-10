@@ -71,11 +71,18 @@ JoJoPay는 일반 상품 구매와 정기 구독 서비스를 지원하는
 ## Infrastructure
 
 * AWS EC2
-* AWS RDS
+* Docker
+* GitHub Actions
 
 ## Collaboration
 
 * GitHub
+
+---
+
+# 시스템 아키텍처
+
+<img width="1232" height="804" alt="시스템 아키텍쳐" src="https://github.com/user-attachments/assets/574973c8-93f0-4579-8452-6a07f2ace33b" />
 
 ---
 
@@ -338,19 +345,11 @@ SecurityContext에 인증 정보를 저장합니다.
 
 # 주문 및 결제 흐름
 
-상품 조회
+주문 생성 및 장바구니 저장
 
 ↓
 
-장바구니 담기
-
-↓
-
-주문 생성
-
-↓
-
-포인트 사용
+재고 선차감
 
 ↓
 
@@ -362,11 +361,19 @@ PortOne 결제 요청
 
 ↓
 
-주문 완료
+Payment 저장
 
 ↓
 
 포인트 적립
+
+↓
+
+누적 결제 금액 반영
+
+↓
+
+결제 완료
 
 ---
 
@@ -406,15 +413,11 @@ PortOne 결제 취소
 
 ↓
 
-구독 생성
+구독 신청
 
 ↓
 
-첫 결제
-
-↓
-
-Subscription 활성화
+구독 정보 저장
 
 ↓
 
@@ -422,15 +425,19 @@ Scheduler 실행
 
 ↓
 
-정기 결제
+PortOne 정기 결제 요청
 
 ↓
 
-SubscriptionBilling 생성
+결제 검증
 
 ↓
 
-다음 결제일 갱신
+Payment 저장
+
+↓
+
+포인트 적립 및 누적 결제 금액 반영
 
 ---
 
@@ -592,6 +599,30 @@ OrderItem에 주문 당시 정보를 스냅샷으로 저장하였습니다.
 ---
 
 # Trouble Shooting
+
+## Trouble Shooting 1
+## Lost Update 문제 해결
+
+## Before
+
+<img width="1508" height="707" alt="1" src="https://github.com/user-attachments/assets/0138a1e4-5ed0-4953-aa1c-91699d5f318d" />
+
+## After
+
+<img width="1471" height="567" alt="1-2" src="https://github.com/user-attachments/assets/ed7efb08-aa1b-4c96-96a3-f06a3b1b743b" />
+
+---
+
+## Trouble Shooting 2
+## 외부 API 호출과 DB 트랜잭션 분리
+
+## Before
+
+<img width="1372" height="601" alt="2" src="https://github.com/user-attachments/assets/0ac7949a-ba6d-4127-bdcd-d5ceebdd227c" />
+
+## After
+
+<img width="1526" height="494" alt="2-1" src="https://github.com/user-attachments/assets/f5161338-ffa2-4eb2-8579-fae63a7e9563" />
 
 
 ---
