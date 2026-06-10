@@ -14,12 +14,6 @@ public class WebhookRequest {
     @NotBlank(message = "이벤트 유형은 필수입니다.")
     private String eventType;     // 예: "PAYMENT_SUCCESS", "PAYMENT_CANCEL"
 
-    @NotNull(message = "결제 식별자 ID는 필수입니다.")
-    private Long paymentId;
-
-    @NotNull(message = "결제 금액은 필수입니다.")
-    private Long amount;
-
-    @NotBlank(message = "결제 상태값은 필수입니다.")
-    private String status;        // 예: "DONE", "CANCELED"
+    @NotBlank(message = "포트원 결제 식별값은 필수입니다.")
+    private String portonePaymentId;
 }

@@ -16,21 +16,39 @@ import com.team11.jojopay.domain.auth.dto.request.LoginRequest;
 import com.team11.jojopay.domain.auth.dto.request.SignupRequest;
 import com.team11.jojopay.domain.auth.dto.response.LoginResponse;
 import com.team11.jojopay.domain.auth.service.AuthService;
+import com.team11.jojopay.domain.cart.entity.Cart;
+import com.team11.jojopay.domain.cart.repository.CartRepository;
 import com.team11.jojopay.domain.member.entity.Member;
 import com.team11.jojopay.domain.member.repository.MemberRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tools.jackson.databind.ObjectMapper;
 
+@ExtendWith(MockitoExtension.class)
 class AuthServiceSliceTest {
 
+    @InjectMocks
     private AuthService authService;
+
+    @Mock
     private MemberRepository memberRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
     private JwtProvider jwtProvider;
+
+    @Mock
+    private CartRepository cartRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
@@ -38,7 +56,7 @@ class AuthServiceSliceTest {
         memberRepository = mock(MemberRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         jwtProvider = mock(JwtProvider.class);
-        authService = new AuthService(memberRepository, passwordEncoder, jwtProvider);
+        authService = new AuthService(memberRepository, passwordEncoder, jwtProvider, cartRepository);
     }
 
     @Test
@@ -57,7 +75,7 @@ class AuthServiceSliceTest {
         // then: 내부 영속화 프록시가 작동되어 엔티티가 save 레이어로 잘 전달되었는지 추적
         verify(memberRepository, times(1)).existsByEmail("newuser@test.com");
         verify(passwordEncoder, times(1)).encode("password123");
-        verify(memberRepository, times(1)).save(any(Member.class));
+        verify(cartRepository, times(1)).save(any(Cart.class));
     }
 
     @Test
